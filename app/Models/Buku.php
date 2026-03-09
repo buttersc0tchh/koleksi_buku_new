@@ -8,12 +8,13 @@ use Illuminate\Database\Eloquent\Model;
 class Buku extends Model
 {
     use HasFactory;
-    protected $table = 'buku';
-    
-    protected $guarded = [];
+
+    protected $table      = 'buku';
+    protected $primaryKey = 'idbuku';
+    protected $guarded    = [];
+
     public function kategori()
-{
-    // Ini supaya Laravel tahu cara narik data nama_kategori dari tabel kategori
-    return $this->belongsTo(Kategori::class, 'idkategori', 'id');
-}
+    {
+        return $this->belongsTo(Kategori::class, 'idkategori', 'id');
+    }
 }

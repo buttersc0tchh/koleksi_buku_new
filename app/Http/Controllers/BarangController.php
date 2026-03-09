@@ -72,18 +72,14 @@ class BarangController extends Controller
 
     public function cetakPdf(Request $request)
     {
-        $request->validate([
-            'selected'    => 'required|array|min:1',
-            'selected.*'  => 'string',
-            'koordinat_x' => 'required|integer|min:1|max:5',
-            'koordinat_y' => 'required|integer|min:1|max:8',
-        ], [
-            'selected.required' => 'Pilih minimal 1 barang untuk dicetak!',
-        ]);
+        $selected = $request->input('selected', []);
+        $x        = (int) $request->input('koordinat_x', 1);
+        $y        = (int) $request->input('koordinat_y', 1);
 
-        $selected = $request->input('selected');
-        $x        = (int) $request->input('koordinat_x');
-        $y        = (int) $request->input('koordinat_y');
+        if (empty($selected)) {
+            return redirect()->route('barang.index')->with('error', 'Pilih minimal 1 barang untuk dicetak!');
+        }
+
         $barangs  = Barang::whereIn('id_barang', $selected)->orderBy('id_barang')->get();
         $startPos = ($y - 1) * 5 + ($x - 1);
 

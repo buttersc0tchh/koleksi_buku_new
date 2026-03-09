@@ -1,22 +1,29 @@
-@extends('layouts.app')
+@extends('layouts.master')
 
 @section('title', 'Tambah Barang')
 
 @section('content')
+<div class="page-header">
+    <h3 class="page-title">
+        <span class="page-title-icon bg-gradient-primary text-white me-2">
+            <i class="mdi mdi-tag-plus"></i>
+        </span> Tambah Barang
+    </h3>
+</div>
+
 <div class="row justify-content-center">
     <div class="col-md-6">
         <div class="card">
             <div class="card-body">
-                <h4 class="card-title">
-                    <i class="mdi mdi-plus-circle text-primary"></i> Tambah Barang Baru
-                </h4>
+                <h4 class="card-title">Formulir Tambah Barang</h4>
                 <hr>
-                <form action="{{ route('barang.store') }}" method="POST">
+
+                <form id="formTambah" action="{{ route('barang.store') }}" method="POST">
                     @csrf
 
                     <div class="form-group">
                         <label class="font-weight-bold">Nama Barang <span class="text-danger">*</span></label>
-                        <input type="text" name="nama_barang"
+                        <input type="text" name="nama_barang" id="nama_barang"
                                class="form-control @error('nama_barang') is-invalid @enderror"
                                value="{{ old('nama_barang') }}"
                                placeholder="Contoh: Mie Goreng Indomie" required>
@@ -31,7 +38,7 @@
                             <div class="input-group-prepend">
                                 <span class="input-group-text">Rp</span>
                             </div>
-                            <input type="number" name="harga"
+                            <input type="number" name="harga" id="harga"
                                    class="form-control @error('harga') is-invalid @enderror"
                                    value="{{ old('harga') }}" placeholder="0" min="0" required>
                         </div>
@@ -56,13 +63,42 @@
                         <a href="{{ route('barang.index') }}" class="btn btn-secondary">
                             <i class="mdi mdi-arrow-left"></i> Kembali
                         </a>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="mdi mdi-content-save"></i> Simpan
-                        </button>
                     </div>
                 </form>
+
+                {{-- Button di luar form --}}
+                <div class="d-flex justify-content-end mt-2">
+                    <button type="button" id="btnSimpan" class="btn btn-primary">
+                        <i class="mdi mdi-content-save"></i> Simpan
+                    </button>
+                </div>
+
             </div>
         </div>
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+$(document).ready(function () {
+    $('#btnSimpan').on('click', function () {
+        var form = document.getElementById('formTambah');
+
+        // Cek validity semua input required
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+
+        // Ubah button jadi spinner
+        $('#btnSimpan').prop('disabled', true).html(
+            '<span class="spinner-border spinner-border-sm me-1" role="status"></span> Menyimpan...'
+        );
+
+        // Submit form
+        form.submit();
+    });
+});
+</script>
+@endpush

@@ -243,6 +243,27 @@
               </a>
             </li>
 
+            {{-- Menu Form Barang --}}
+            <li class="nav-item {{ Request::is('form-barang') ? 'active' : '' }}">
+              <a class="nav-link" href="{{ route('formbarang.index') }}">
+                <span class="menu-title">Form Barang</span>
+                <i class="mdi mdi-table menu-icon"></i>
+              </a>
+            </li>
+            <li class="nav-item {{ Request::is('form-barang-dt') ? 'active' : '' }}">
+              <a class="nav-link" href="{{ route('formbarang.indexDt') }}">
+                <span class="menu-title">Form Barang DT</span>
+                <i class="mdi mdi-table-large menu-icon"></i>
+              </a>
+            </li>
+
+            <li class="nav-item {{ Request::is('select-kota') ? 'active' : '' }}">
+              <a class="nav-link" href="{{ route('selectkota.index') }}">
+                <span class="menu-title">Select Kota</span>
+              <i class="mdi mdi-map-marker menu-icon"></i>
+              </a>
+            </li>
+
           </ul>
         </nav>
         <div class="main-panel">

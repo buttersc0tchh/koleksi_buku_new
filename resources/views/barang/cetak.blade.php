@@ -5,59 +5,51 @@
     <title>Tag Harga</title>
     <style>
         @page {
-            margin: 13mm 5mm 13mm 5mm;
+            margin: 22mm 4.7mm 5mm 4.7mm;
             size: A4 portrait;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: Arial, sans-serif; width: 200mm; }
+        body { font-family: Arial, sans-serif; }
 
-        .label-row {
-            display: block;
-            width: 200mm;
-            height: 33.5mm;
-            overflow: hidden;
+        table.label-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
         }
 
-        .label-cell {
-            display: inline-block;
-            vertical-align: top;
-            width: 38mm;
-            height: 33.5mm;
-            margin-right: 2mm;
-            padding: 3mm;
-            overflow: hidden;
+        td.label-cell {
+            width: 20%;
+            height: 30mm;
+            vertical-align: middle;
+            text-align: center;
         }
-
-        .label-cell:last-child { margin-right: 0; }
-
-        .label-content { text-align: center; padding-top: 3mm; }
 
         .label-id {
-            font-size: 6pt;
+            font-size: 5pt;
             color: #888;
             display: block;
-            margin-bottom: 2mm;
+            margin-bottom: 0.3mm;
         }
 
         .label-nama {
-            font-size: 8.5pt;
+            font-size: 7pt;
             font-weight: bold;
             color: #000;
             display: block;
-            line-height: 1.3;
-            margin-bottom: 2mm;
+            line-height: 1.2;
+            margin-bottom: 0.5mm;
         }
 
         .label-harga {
-            font-size: 12pt;
+            font-size: 9.5pt;
             font-weight: bold;
             color: #c00000;
             display: block;
-            margin-bottom: 1mm;
+            margin-bottom: 0.3mm;
         }
 
         .label-satuan {
-            font-size: 7pt;
+            font-size: 6pt;
             color: #555;
             display: block;
         }
@@ -72,32 +64,32 @@
     $totalBarang = count($barangs);
 @endphp
 
-@for ($i = 0; $i < $totalSlot; $i++)
+<table class="label-table">
+    @for ($i = 0; $i < $totalSlot; $i++)
 
-    @if ($i % $kolom === 0)
-        <div class="label-row">
-    @endif
+        @if ($i % $kolom === 0)
+            <tr>
+        @endif
 
-    @if ($i < $startPos || $barangIdx >= $totalBarang)
-        <div class="label-cell"></div>
-    @else
-        @php $b = $barangs[$barangIdx]; @endphp
-        <div class="label-cell">
-            <div class="label-content">
+        @if ($i < $startPos || $barangIdx >= $totalBarang)
+            <td class="label-cell"></td>
+        @else
+            @php $b = $barangs[$barangIdx]; @endphp
+            <td class="label-cell">
                 <span class="label-id">{{ $b->id_barang }}</span>
                 <span class="label-nama">{{ $b->nama_barang }}</span>
                 <span class="label-harga">Rp {{ number_format($b->harga, 0, ',', '.') }}</span>
                 <span class="label-satuan">/ {{ $b->satuan }}</span>
-            </div>
-        </div>
-        @php $barangIdx++; @endphp
-    @endif
+            </td>
+            @php $barangIdx++; @endphp
+        @endif
 
-    @if ($i % $kolom === $kolom - 1 || $i === $totalSlot - 1)
-        </div>
-    @endif
+        @if ($i % $kolom === $kolom - 1 || $i === $totalSlot - 1)
+            </tr>
+        @endif
 
-@endfor
+    @endfor
+</table>
 
 </body>
 </html>

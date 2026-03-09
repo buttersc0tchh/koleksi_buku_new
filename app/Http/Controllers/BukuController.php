@@ -28,13 +28,18 @@ class BukuController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'kategori_id' => 'required',
-            'kode' => 'required',
-            'judul' => 'required',
-            'pengarang' => 'required',
+            'idkategori' => 'required',
+            'kode'       => 'required',
+            'judul'      => 'required',
+            'pengarang'  => 'required',
         ]);
 
-        Buku::create($request->all());
+        Buku::create([
+            'idkategori' => $request->idkategori,
+            'kode'       => $request->kode,
+            'judul'      => $request->judul,
+            'pengarang'  => $request->pengarang,
+        ]);
 
         return redirect()->route('buku.index')->with('success', 'Data berhasil disimpan!');
     }
@@ -49,14 +54,19 @@ class BukuController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'kategori_id' => 'required',
-            'kode' => 'required',
-            'judul' => 'required',
-            'pengarang' => 'required',
+            'idkategori' => 'required',
+            'kode'       => 'required',
+            'judul'      => 'required',
+            'pengarang'  => 'required',
         ]);
 
         $buku = Buku::findOrFail($id);
-        $buku->update($request->all());
+        $buku->update([
+            'idkategori' => $request->idkategori,
+            'kode'       => $request->kode,
+            'judul'      => $request->judul,
+            'pengarang'  => $request->pengarang,
+        ]);
 
         return redirect()->route('buku.index')->with('success', 'Data berhasil diperbarui!');
     }

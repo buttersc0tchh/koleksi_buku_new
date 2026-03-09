@@ -38,8 +38,15 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('buku', BukuController::class);
 
     // Tag Harga
-    Route::post('barang/cetak-pdf', [BarangController::class, 'cetakPdf'])->name('barang.cetakPdf');
+    Route::get('barang/cetak-pdf', [BarangController::class, 'cetakPdf'])->name('barang.cetakPdf');
     Route::resource('barang', BarangController::class);
+
+    // Soal 2 - Form Barang Tanpa DB
+    Route::get('/form-barang', function () {return view('formbarang.index');})->name('formbarang.index');
+    Route::get('/form-barang-dt', function () {return view('formbarang.index_dt');})->name('formbarang.indexDt');
+
+    // Soal 4 - Select Kota
+    Route::get('/select-kota', function () {return view('selectkota.index');})->name('selectkota.index');
 
     // Fitur Dokumen (Editor & PDF)
     Route::prefix('dokumen')->group(function () {

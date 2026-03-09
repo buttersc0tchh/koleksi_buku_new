@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.master')
 
 @section('title', 'Tag Harga - Data Barang')
 
@@ -30,8 +30,7 @@
                     </div>
                 @endif
 
-                <form id="formCetak" action="{{ route('barang.cetakPdf') }}" method="POST" target="_blank">
-                    @csrf
+                <form id="formCetak" action="{{ route('barang.cetakPdf') }}" method="GET" target="_blank">
 
                     {{-- Panel Koordinat --}}
                     <div class="card border mb-3" style="background:#f8f9fa;">
@@ -55,7 +54,7 @@
                                            class="form-control" value="1" min="1" max="8" required>
                                 </div>
                                 <div class="col-md-3 d-flex align-items-end">
-                                    <button type="submit" class="btn btn-success w-100">
+                                    <button type="button" class="btn btn-success w-100" id="btnCetak">
                                         <i class="mdi mdi-file-pdf-box"></i> Cetak PDF
                                     </button>
                                 </div>
@@ -160,22 +159,27 @@
 <script>
 $(document).ready(function () {
 
-    // Init DataTables
-    $('#tableBarang').DataTable({
+    // Init DataTables - tampilkan semua data sekaligus
+    var table = $('#tableBarang').DataTable({
         language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/id.json' },
-        columnDefs: [{ orderable: false, targets: [0, 5] }]
+        columnDefs: [{ orderable: false, targets: [0, 5] }],
+        pageLength: -1,
+        lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Semua"]]
     });
 
-    // Checkbox Pilih Semua
+    // Checkbox Pilih Semua (semua halaman)
     $('#checkAll').on('change', function () {
-        $('.checkItem').prop('checked', this.checked);
+        var checked = this.checked;
+        table.rows().every(function () {
+            $(this.node()).find('.checkItem').prop('checked', checked);
+        });
         updateInfo();
     });
 
     $(document).on('change', '.checkItem', function () {
-        $('#checkAll').prop('checked',
-            $('.checkItem').length === $('.checkItem:checked').length
-        );
+        var total   = table.rows().count();
+        var checked = $('.checkItem:checked').length;
+        $('#checkAll').prop('checked', total === checked);
         updateInfo();
     });
 
@@ -184,12 +188,13 @@ $(document).ready(function () {
         $('#infoSelected').text(count + ' barang dipilih');
     }
 
-    // Validasi sebelum cetak
-    $('#formCetak').on('submit', function (e) {
+    // Tombol Cetak PDF
+    $('#btnCetak').on('click', function () {
         if ($('.checkItem:checked').length === 0) {
-            e.preventDefault();
             alert('Pilih minimal 1 barang yang akan dicetak!');
+            return false;
         }
+        $('#formCetak').submit();
     });
 
     // Preview Grid
