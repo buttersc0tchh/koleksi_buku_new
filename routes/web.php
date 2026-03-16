@@ -10,6 +10,8 @@ use App\Http\Controllers\Auth\OtpController;
 use App\Http\Controllers\PdfController;
 use App\Http\Controllers\DokumenController;
 use App\Http\Controllers\BarangController;
+use App\Http\Controllers\WilayahController;
+use App\Http\Controllers\PosController;
 
 // --- PUBLIC ROUTES (Tanpa Login) ---
 Route::get('/', function () {
@@ -42,11 +44,11 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('barang', BarangController::class);
 
     // Soal 2 - Form Barang Tanpa DB
-    Route::get('/form-barang', function () {return view('formbarang.index');})->name('formbarang.index');
-    Route::get('/form-barang-dt', function () {return view('formbarang.index_dt');})->name('formbarang.indexDt');
+    Route::get('/form-barang', function () { return view('formbarang.index'); })->name('formbarang.index');
+    Route::get('/form-barang-dt', function () { return view('formbarang.index_dt'); })->name('formbarang.indexDt');
 
     // Soal 4 - Select Kota
-    Route::get('/select-kota', function () {return view('selectkota.index');})->name('selectkota.index');
+    Route::get('/select-kota', function () { return view('selectkota.index'); })->name('selectkota.index');
 
     // Fitur Dokumen (Editor & PDF)
     Route::prefix('dokumen')->group(function () {
@@ -55,6 +57,17 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/undangan/download', [PdfController::class, 'generateUndangan'])->name('pdf.undangan');
         Route::get('/sertifikat/download', [PdfController::class, 'generateSertifikat'])->name('pdf.sertifikat');
     });
+
+    // Studi Kasus 1 - Wilayah AJAX
+    Route::get('/wilayah', [WilayahController::class, 'index'])->name('wilayah.index');
+    Route::get('/wilayah/kota', [WilayahController::class, 'getKota'])->name('wilayah.kota');
+    Route::get('/wilayah/kecamatan', [WilayahController::class, 'getKecamatan'])->name('wilayah.kecamatan');
+    Route::get('/wilayah/kelurahan', [WilayahController::class, 'getKelurahan'])->name('wilayah.kelurahan');
+
+    // Studi Kasus 2 - POS/Kasir
+    Route::get('/pos', [PosController::class, 'index'])->name('pos.index');
+    Route::get('/pos/cari-barang', [PosController::class, 'cariBarang'])->name('pos.cariBarang');
+    Route::post('/pos/bayar', [PosController::class, 'bayar'])->name('pos.bayar');
 });
 
 // Debug SMTP

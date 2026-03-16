@@ -264,6 +264,20 @@
               </a>
             </li>
 
+            <li class="nav-item {{ Request::is('wilayah*') ? 'active' : '' }}">
+              <a class="nav-link" href="{{ route('wilayah.index') }}">
+                <span class="menu-title">Wilayah AJAX</span>
+              <i class="mdi mdi-map menu-icon"></i>
+              </a>
+            </li>
+
+            <li class="nav-item {{ Request::is('pos*') ? 'active' : '' }}">
+              <a class="nav-link" href="{{ route('pos.index') }}">
+                <span class="menu-title">POS Kasir</span>
+              <i class="mdi mdi-cart menu-icon"></i>
+            </a>
+            </li>
+
           </ul>
         </nav>
         <div class="main-panel">
