@@ -17,7 +17,7 @@ use App\Http\Controllers\CustomerController;
 
 // --- PUBLIC ROUTES (Tanpa Login) ---
 Route::get('/', function () {
-    return redirect()->route('login');
+    return redirect()->route('customer.index');
 });
 
 // Google OAuth
