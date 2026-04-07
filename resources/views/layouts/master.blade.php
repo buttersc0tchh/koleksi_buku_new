@@ -278,6 +278,34 @@
             </a>
             </li>
 
+            {{-- Payment Gateway - Vendor --}}
+            <li class="nav-item {{ Request::is('vendor*') ? 'active' : '' }}">
+              <a class="nav-link" data-bs-toggle="collapse" href="#vendor-menu"
+                 aria-expanded="{{ Request::is('vendor*') ? 'true' : 'false' }}" aria-controls="vendor-menu">
+                <span class="menu-title">Vendor</span>
+                <i class="menu-arrow"></i>
+                <i class="mdi mdi-store menu-icon"></i>
+              </a>
+              <div class="collapse {{ Request::is('vendor*') ? 'show' : '' }}" id="vendor-menu">
+                <ul class="nav flex-column sub-menu">
+                  <li class="nav-item">
+                    <a class="nav-link" href="{{ route('vendor.index') }}">Kelola Vendor & Menu</a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" href="{{ route('vendor.pesanan') }}">Pesanan Lunas</a>
+                  </li>
+                </ul>
+              </div>
+            </li>
+
+            {{-- Payment Gateway - Customer --}}
+            <li class="nav-item {{ Request::is('customer*') ? 'active' : '' }}">
+              <a class="nav-link" href="{{ route('customer.index') }}">
+                <span class="menu-title">Customer</span>
+                <i class="mdi mdi-account menu-icon"></i>
+              </a>
+            </li>
+
           </ul>
         </nav>
         <div class="main-panel">

@@ -12,6 +12,8 @@ use App\Http\Controllers\DokumenController;
 use App\Http\Controllers\BarangController;
 use App\Http\Controllers\WilayahController;
 use App\Http\Controllers\PosController;
+use App\Http\Controllers\VendorController;
+use App\Http\Controllers\CustomerController;
 
 // --- PUBLIC ROUTES (Tanpa Login) ---
 Route::get('/', function () {
@@ -68,6 +70,20 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/pos', [PosController::class, 'index'])->name('pos.index');
     Route::get('/pos/cari-barang', [PosController::class, 'cariBarang'])->name('pos.cariBarang');
     Route::post('/pos/bayar', [PosController::class, 'bayar'])->name('pos.bayar');
+
+    // Payment Gateway - Vendor
+    Route::get('/vendor', [VendorController::class, 'index'])->name('vendor.index');
+    Route::post('/vendor', [VendorController::class, 'storeVendor'])->name('vendor.store');
+    Route::get('/vendor/pesanan-lunas', [VendorController::class, 'pesananLunas'])->name('vendor.pesanan');
+    Route::get('/vendor/{id_vendor}/menu', [VendorController::class, 'menu'])->name('vendor.menu');
+    Route::post('/vendor/{id_vendor}/menu', [VendorController::class, 'tambahMenu'])->name('vendor.menu.store');
+    Route::delete('/vendor/menu/{id_menu}', [VendorController::class, 'hapusMenu'])->name('vendor.menu.hapus');
+
+    // Payment Gateway - Customer
+    Route::get('/customer', [CustomerController::class, 'index'])->name('customer.index');
+    Route::post('/customer/checkout', [CustomerController::class, 'checkout'])->name('customer.checkout');
+    Route::post('/customer/bayar', [CustomerController::class, 'bayar'])->name('customer.bayar');
+    Route::get('/customer/status/{id_pesanan}', [CustomerController::class, 'status'])->name('customer.status');
 });
 
 // Debug SMTP
