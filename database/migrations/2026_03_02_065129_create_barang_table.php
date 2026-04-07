@@ -17,32 +17,36 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // Trigger function untuk PostgreSQL
-        DB::unprepared('
-            CREATE OR REPLACE FUNCTION generate_id_barang()
-            RETURNS TRIGGER AS $$
-            DECLARE
-                last_num INT;
-            BEGIN
-                SELECT COUNT(*) INTO last_num FROM barang;
-                NEW.id_barang := CONCAT(\'BRG\', LPAD((last_num + 1)::TEXT, 5, \'0\'));
-                RETURN NEW;
-            END;
-            $$ LANGUAGE plpgsql;
-        ');
+        // Trigger function untuk PostgreSQL (skip pada SQLite)
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::unprepared('
+                CREATE OR REPLACE FUNCTION generate_id_barang()
+                RETURNS TRIGGER AS $$
+                DECLARE
+                    last_num INT;
+                BEGIN
+                    SELECT COUNT(*) INTO last_num FROM barang;
+                    NEW.id_barang := CONCAT(\'BRG\', LPAD((last_num + 1)::TEXT, 5, \'0\'));
+                    RETURN NEW;
+                END;
+                $$ LANGUAGE plpgsql;
+            ');
 
-        DB::unprepared('
-            CREATE TRIGGER before_insert_barang
-            BEFORE INSERT ON barang
-            FOR EACH ROW
-            EXECUTE FUNCTION generate_id_barang();
-        ');
+            DB::unprepared('
+                CREATE TRIGGER before_insert_barang
+                BEFORE INSERT ON barang
+                FOR EACH ROW
+                EXECUTE FUNCTION generate_id_barang();
+            ');
+        }
     }
 
     public function down(): void
     {
-        DB::unprepared('DROP TRIGGER IF EXISTS before_insert_barang ON barang');
-        DB::unprepared('DROP FUNCTION IF EXISTS generate_id_barang');
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::unprepared('DROP TRIGGER IF EXISTS before_insert_barang ON barang');
+            DB::unprepared('DROP FUNCTION IF EXISTS generate_id_barang');
+        }
         Schema::dropIfExists('barang');
     }
 };

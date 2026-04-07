@@ -35,7 +35,7 @@
                 </div>
                 <div class="row mb-3">
                     <div class="col-sm-4 fw-bold">Nama Pemesan</div>
-                    <div class="col-sm-8">{{ $pesanan->nama }}</div>
+                    <div class="col-sm-8">{{ $pesanan->customer_name ?? $pesanan->nama }}</div>
                 </div>
                 <div class="row mb-3">
                     <div class="col-sm-4 fw-bold">Waktu Pesanan</div>
