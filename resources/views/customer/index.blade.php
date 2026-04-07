@@ -22,36 +22,6 @@
 </div>
 @endif
 
-<div class="row mb-3">
-    <div class="col-12">
-        <div class="alert alert-info">
-            <i class="mdi mdi-account-circle me-2"></i>
-            Login sebagai: <strong>{{ $namaCustomer }}</strong>
-        </div>
-    </div>
-</div>
-
-@if($pesananTerbaru)
-<div class="row mb-3">
-    <div class="col-12">
-        <div class="card border-{{ $pesananTerbaru->status_bayar == 1 ? 'success' : 'warning' }}">
-            <div class="card-body">
-                <h5 class="card-title">Status Pesanan Terbaru</h5>
-                <p class="mb-1">ID Pesanan: <strong>#{{ $pesananTerbaru->id_pesanan }}</strong></p>
-                <p class="mb-1">Total: <strong>Rp {{ number_format($pesananTerbaru->total, 0, ',', '.') }}</strong></p>
-                <p class="mb-0">Status:
-                    @if($pesananTerbaru->status_bayar == 1)
-                        <span class="badge bg-success text-white fs-6">✅ Lunas</span>
-                    @else
-                        <span class="badge bg-warning text-dark fs-6">⏳ Belum Lunas</span>
-                    @endif
-                </p>
-            </div>
-        </div>
-    </div>
-</div>
-@endif
-
 <form action="{{ route('customer.checkout') }}" method="POST" id="checkoutForm">
     @csrf
     @foreach($vendors as $vendor)

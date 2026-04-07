@@ -78,13 +78,18 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/vendor/{id_vendor}/menu', [VendorController::class, 'menu'])->name('vendor.menu');
     Route::post('/vendor/{id_vendor}/menu', [VendorController::class, 'tambahMenu'])->name('vendor.menu.store');
     Route::delete('/vendor/menu/{id_menu}', [VendorController::class, 'hapusMenu'])->name('vendor.menu.hapus');
-
-    // Payment Gateway - Customer
-    Route::get('/customer', [CustomerController::class, 'index'])->name('customer.index');
-    Route::post('/customer/checkout', [CustomerController::class, 'checkout'])->name('customer.checkout');
-    Route::post('/customer/bayar', [CustomerController::class, 'bayar'])->name('customer.bayar');
-    Route::get('/customer/status/{id_pesanan}', [CustomerController::class, 'status'])->name('customer.status');
 });
+
+// Payment Gateway - Customer (Tanpa Login)
+Route::get('/customer', [CustomerController::class, 'index'])->name('customer.index');
+Route::post('/customer/checkout', [CustomerController::class, 'checkout'])->name('customer.checkout');
+Route::post('/customer/bayar', [CustomerController::class, 'generatePayment'])->name('customer.bayar');
+Route::get('/payment/{id_pesanan}', [CustomerController::class, 'showPayment'])->name('payment.show');
+Route::get('/payment-status/{id_pesanan}', [CustomerController::class, 'paymentStatus'])->name('payment.status');
+Route::get('/customer/status/{id_pesanan}', [CustomerController::class, 'status'])->name('customer.status');
+
+// Midtrans Webhook (tanpa CSRF karena dari Midtrans server)
+Route::post('/webhook/midtrans', [CustomerController::class, 'paymentCallback'])->name('webhook.midtrans');
 
 // Debug SMTP
 Route::get('/test-email', function () {

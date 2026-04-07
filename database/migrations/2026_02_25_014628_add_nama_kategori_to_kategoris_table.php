@@ -1,27 +1,29 @@
 <?php
 
-namespace App\Models;
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-
-class Kategori extends Model
+return new class extends Migration
 {
-    use HasFactory;
-
-    // 1. Paksa Laravel pakai nama tabel 'kategori' (tanpa s) sesuai rename kamu di pgAdmin
-    protected $table = 'kategori';
-
-    // 2. Tentukan primary key-nya adalah 'id' sesuai yang ada di pgAdmin kamu
-    protected $primaryKey = 'id';
-
-    // 3. Daftarkan kolom yang bisa diisi sesuai Modul 1
-    protected $fillable = ['nama_kategori'];
-
-    // 4. Relasi ke Model Buku (Satu kategori punya banyak buku)
-    public function buku()
+    public function up(): void
     {
-        // 'idkategori' di tabel buku nyambung ke 'id' di tabel ini
-        return $this->hasMany(Buku::class, 'idkategori', 'id');
+        // Create kategoris table if it doesn't exist (for backward compatibility)
+        if (!Schema::hasTable('kategoris')) {
+            Schema::create('kategoris', function (Blueprint $table) {
+                $table->id();
+                $table->string('nama_kategori')->nullable();
+                $table->timestamps();
+            });
+        } elseif (!Schema::hasColumn('kategoris', 'nama_kategori')) {
+            Schema::table('kategoris', function (Blueprint $table) {
+                $table->string('nama_kategori')->nullable();
+            });
+        }
     }
-}
+
+    public function down(): void
+    {
+        Schema::dropIfExists('kategoris');
+    }
+};
