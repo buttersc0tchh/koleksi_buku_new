@@ -156,7 +156,9 @@ class CustomerController extends Controller
 
             $result = $response->json();
 
-            if (isset($result['status_code']) && in_array($result['status_code'], ['200', '201'])) {
+            // Midtrans returns status_code as string (e.g. "201"), use loose comparison
+            $statusCode = (string) ($result['status_code'] ?? '');
+            if (in_array($statusCode, ['200', '201'], true)) {
                 if ($request->metode_bayar === 'qris') {
                     $qrUrl = null;
                     foreach (($result['actions'] ?? []) as $action) {
@@ -167,8 +169,9 @@ class CustomerController extends Controller
                     }
                     $pesanan->update(['qr_url' => $qrUrl]);
                 } else {
-                    $vaNumber = $result['va_numbers'][0]['va_number'] ?? null;
-                    $vaBank   = $result['va_numbers'][0]['bank'] ?? 'bca';
+                    $vaNumbers = $result['va_numbers'] ?? [];
+                    $vaNumber  = !empty($vaNumbers) ? $vaNumbers[0]['va_number'] : null;
+                    $vaBank    = !empty($vaNumbers) ? ($vaNumbers[0]['bank'] ?? 'bca') : 'bca';
                     $pesanan->update(['va_number' => $vaNumber, 'va_bank' => $vaBank]);
                 }
             } else {
@@ -249,6 +252,7 @@ class CustomerController extends Controller
             return response()->json(['message' => 'Order not found'], 404);
         }
 
+        // Status mapping: 0=pending, 1=lunas/paid, 2=expired, 3=cancelled
         if (in_array($transactionStatus, ['settlement', 'capture'])) {
             $pesanan->update(['status_bayar' => 1]);
         } elseif ($transactionStatus === 'expire') {

@@ -183,27 +183,47 @@
                 .catch(function (err) { console.error('Polling error:', err); });
         }, 5000);
 
-        // Countdown timer (24 jam default)
-        let totalSeconds = 24 * 60 * 60;
+        // Countdown timer: 24 jam dari waktu buat pesanan
+        const createdAt = new Date("{{ $pesanan->timestamp }}").getTime();
+        const expiresAt = createdAt + (24 * 60 * 60 * 1000);
         const countdownEl = document.getElementById('countdown');
         const countdownInterval = setInterval(function () {
-            if (totalSeconds <= 0) {
+            const remaining = Math.max(0, Math.floor((expiresAt - Date.now()) / 1000));
+            if (remaining <= 0) {
                 clearInterval(countdownInterval);
                 countdownEl.textContent = 'EXPIRED';
                 return;
             }
-            totalSeconds--;
-            const h = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
-            const m = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
-            const s = String(totalSeconds % 60).padStart(2, '0');
+            const h = String(Math.floor(remaining / 3600)).padStart(2, '0');
+            const m = String(Math.floor((remaining % 3600) / 60)).padStart(2, '0');
+            const s = String(remaining % 60).padStart(2, '0');
             countdownEl.textContent = h + ':' + m + ':' + s;
         }, 1000);
     }
 
     function copyVA() {
         const va = document.getElementById('vaNumber').innerText.trim();
+        const copyBtn = document.querySelector('[onclick="copyVA()"]');
         navigator.clipboard.writeText(va).then(function () {
-            alert('Nomor VA berhasil disalin: ' + va);
+            const original = copyBtn.innerHTML;
+            copyBtn.innerHTML = '<i class="mdi mdi-check me-1"></i> Tersalin!';
+            copyBtn.classList.replace('btn-outline-primary', 'btn-success');
+            setTimeout(function () {
+                copyBtn.innerHTML = original;
+                copyBtn.classList.replace('btn-success', 'btn-outline-primary');
+            }, 2000);
+        }).catch(function () {
+            // Fallback for browsers that don't support clipboard API
+            const el = document.createElement('textarea');
+            el.value = va;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            copyBtn.innerHTML = '<i class="mdi mdi-check me-1"></i> Tersalin!';
+            setTimeout(function () {
+                copyBtn.innerHTML = '<i class="mdi mdi-content-copy me-1"></i> Salin Nomor';
+            }, 2000);
         });
     }
 </script>
