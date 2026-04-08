@@ -160,14 +160,15 @@ class CustomerController extends Controller
             $statusCode = (string) ($result['status_code'] ?? '');
             if (in_array($statusCode, ['200', '201'], true)) {
                 if ($request->metode_bayar === 'qris') {
-                    $qrUrl = null;
+                    $qrUrl    = null;
+                    $qrString = $result['qr_string'] ?? null;
                     foreach (($result['actions'] ?? []) as $action) {
                         if ($action['name'] === 'generate-qr-code') {
                             $qrUrl = $action['url'];
                             break;
                         }
                     }
-                    $pesanan->update(['qr_url' => $qrUrl]);
+                    $pesanan->update(['qr_url' => $qrUrl, 'qr_string' => $qrString]);
                 } else {
                     $vaNumbers = $result['va_numbers'] ?? [];
                     $vaNumber  = !empty($vaNumbers) ? $vaNumbers[0]['va_number'] : null;
