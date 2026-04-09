@@ -3,12 +3,13 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use App\Models\Vendor;
 use App\Models\Menu;
 use App\Models\Pesanan;
 use App\Models\DetailPesanan;
+use Midtrans\Config as MidtransConfig;
+use Midtrans\Snap;
 
 class CustomerController extends Controller
 {
@@ -112,27 +113,26 @@ class CustomerController extends Controller
             ]);
         }
 
-        // Panggil Midtrans Snap API untuk mendapatkan token
-        $serverKey    = config('services.midtrans.server_key');
-        $isProduction = config('services.midtrans.is_production', false);
-        $snapBaseUrl  = $isProduction
-            ? 'https://app.midtrans.com'
-            : 'https://app.sandbox.midtrans.com';
+        // Configure Midtrans library
+        MidtransConfig::$serverKey    = config('midtrans.server_key');
+        MidtransConfig::$isProduction = config('midtrans.is_production', false);
+        MidtransConfig::$isSanitized  = true;
+        MidtransConfig::$is3ds        = true;
 
         $itemDetails = [];
         foreach ($cartItems as $item) {
             $itemDetails[] = [
                 'id'       => (string) $item['menu']->id_menu,
-                'price'    => $item['menu']->harga,
-                'quantity' => $item['jumlah'],
-                'name'     => substr($item['menu']->nama_menu, 0, 50), // Midtrans item name limit
+                'price'    => (int) $item['menu']->harga,
+                'quantity' => (int) $item['jumlah'],
+                'name'     => substr($item['menu']->nama_menu, 0, 50),
             ];
         }
 
-        $payload = [
+        $params = [
             'transaction_details' => [
                 'order_id'     => $orderId,
-                'gross_amount' => $total,
+                'gross_amount' => (int) $total,
             ],
             'item_details'     => $itemDetails,
             'customer_details' => [
@@ -152,19 +152,10 @@ class CustomerController extends Controller
 
         $snapToken = null;
         try {
-            $response = Http::withBasicAuth($serverKey, '')
-                ->post("{$snapBaseUrl}/snap/v1/transactions", $payload);
-
-            $result = $response->json();
-
-            if (isset($result['token'])) {
-                $snapToken = $result['token'];
-                $pesanan->update(['midtrans_token' => $snapToken]);
-            } else {
-                Log::warning('Midtrans Snap token not received', ['response' => $result, 'order_id' => $orderId]);
-            }
+            $snapToken = Snap::getSnapToken($params);
+            $pesanan->update(['midtrans_token' => $snapToken]);
         } catch (\Exception $e) {
-            Log::error('Midtrans Snap API error: ' . $e->getMessage(), ['order_id' => $orderId]);
+            Log::error('Midtrans Snap token error: ' . $e->getMessage(), ['order_id' => $orderId]);
         }
 
         return redirect()->route('payment.show', $pesanan->id_pesanan);
@@ -176,11 +167,9 @@ class CustomerController extends Controller
             ->with('detail.menu')
             ->firstOrFail();
 
-        $isProduction = config('services.midtrans.is_production', false);
-        $clientKey    = config('services.midtrans.client_key');
-        $snapJsUrl    = $isProduction
-            ? 'https://app.midtrans.com/snap/snap.js'
-            : 'https://app.sandbox.midtrans.com/snap/snap.js';
+        $isProduction = config('midtrans.is_production', false);
+        $clientKey    = config('midtrans.client_key');
+        $snapJsUrl    = config('midtrans.snap_url');
 
         return view('customer.payment', compact('pesanan', 'clientKey', 'snapJsUrl'));
     }
@@ -191,22 +180,16 @@ class CustomerController extends Controller
 
         // Cek status ke Midtrans jika masih pending
         if ($pesanan->status_bayar == 0 && $pesanan->midtrans_order_id) {
-            $serverKey    = config('services.midtrans.server_key');
-            $isProduction = config('services.midtrans.is_production', false);
-            $baseUrl      = $isProduction
-                ? 'https://api.midtrans.com'
-                : 'https://api.sandbox.midtrans.com';
+            MidtransConfig::$serverKey    = config('midtrans.server_key');
+            MidtransConfig::$isProduction = config('midtrans.is_production', false);
 
             try {
-                $response = Http::withBasicAuth($serverKey, '')
-                    ->get("{$baseUrl}/v2/{$pesanan->midtrans_order_id}/status");
+                $status = \Midtrans\Transaction::status($pesanan->midtrans_order_id);
 
-                $result = $response->json();
-
-                if (isset($result['transaction_status'])) {
-                    if (in_array($result['transaction_status'], ['settlement', 'capture'])) {
+                if (isset($status->transaction_status)) {
+                    if (in_array($status->transaction_status, ['settlement', 'capture'])) {
                         $pesanan->update(['status_bayar' => 1]);
-                    } elseif ($result['transaction_status'] === 'expire') {
+                    } elseif ($status->transaction_status === 'expire') {
                         $pesanan->update(['status_bayar' => 2]);
                     }
                 }
@@ -223,7 +206,7 @@ class CustomerController extends Controller
 
     public function paymentCallback(Request $request)
     {
-        $serverKey = config('services.midtrans.server_key');
+        $serverKey = config('midtrans.server_key');
 
         // Verifikasi signature Midtrans
         $orderId           = $request->input('order_id');
