@@ -31,20 +31,10 @@
                     <div class="col-sm-4 fw-bold">No. HP</div>
                     <div class="col-sm-8">{{ $pesanan->customer_phone }}</div>
                 </div>
-                <div class="row mb-3">
+                <div class="row mb-4">
                     <div class="col-sm-4 fw-bold">Total Pembayaran</div>
                     <div class="col-sm-8 text-success fw-bold fs-5">
                         Rp {{ number_format($pesanan->total, 0, ',', '.') }}
-                    </div>
-                </div>
-                <div class="row mb-4">
-                    <div class="col-sm-4 fw-bold">Metode Bayar</div>
-                    <div class="col-sm-8">
-                        @if($pesanan->metode_bayar === 'qris')
-                            <span class="badge bg-success fs-6"><i class="mdi mdi-qrcode me-1"></i> QRIS</span>
-                        @else
-                            <span class="badge bg-primary fs-6"><i class="mdi mdi-bank me-1"></i> Virtual Account BCA</span>
-                        @endif
                     </div>
                 </div>
 
@@ -61,56 +51,30 @@
                     </div>
                 </div>
 
-                {{-- QRIS Display --}}
-                @if($pesanan->metode_bayar === 'qris')
-                <div class="text-center mb-4" id="qrisSection">
-                    <h5 class="mb-3"><i class="mdi mdi-qrcode me-2"></i> Scan QR Code Berikut</h5>
-                    @if($pesanan->qr_string)
-                        <div id="qrcode" class="d-inline-block border rounded p-2"></div>
-                        <p class="text-muted mt-2 small">Scan dengan aplikasi mobile banking atau e-wallet Anda</p>
-                    @elseif($pesanan->qr_url)
-                        <img src="{{ $pesanan->qr_url }}" alt="QR Code Pembayaran"
-                             class="img-fluid border rounded p-2"
-                             style="max-width: 280px;">
-                        <p class="text-muted mt-2 small">Scan dengan aplikasi mobile banking atau e-wallet Anda</p>
+                {{-- Pay Button (only if still pending and snap token available) --}}
+                @if($pesanan->status_bayar == 0)
+                <div class="text-center mb-4">
+                    @if($pesanan->midtrans_token)
+                        <button id="pay-button" class="btn btn-success btn-lg px-5">
+                            <i class="mdi mdi-cash-check me-2"></i>
+                            BAYAR SEKARANG
+                        </button>
+                        <p class="text-muted mt-2 small">
+                            <i class="mdi mdi-information-outline me-1"></i>
+                            Pilih metode pembayaran (QRIS / Virtual Account) di jendela berikutnya
+                        </p>
                     @else
                         <div class="alert alert-warning">
                             <i class="mdi mdi-alert-circle me-2"></i>
-                            QR Code sedang diproses. Silakan muat ulang halaman atau hubungi admin.
+                            Token pembayaran belum tersedia. Silakan muat ulang halaman atau hubungi admin.
                         </div>
+                        <button onclick="window.location.reload()" class="btn btn-outline-warning">
+                            <i class="mdi mdi-refresh me-1"></i> Muat Ulang
+                        </button>
                     @endif
                 </div>
-                @endif
-
-                {{-- Virtual Account Display --}}
-                @if($pesanan->metode_bayar === 'virtual_account')
-                <div class="text-center mb-4" id="vaSection">
-                    <h5 class="mb-3"><i class="mdi mdi-bank me-2"></i> Transfer ke Virtual Account BCA</h5>
-                    @if($pesanan->va_number)
-                        <div class="card bg-light border-primary mx-auto" style="max-width: 400px;">
-                            <div class="card-body">
-                                <p class="mb-1 text-muted">Nomor Virtual Account</p>
-                                <h3 class="fw-bold text-primary letter-spacing-1" id="vaNumber">
-                                    {{ $pesanan->va_number }}
-                                </h3>
-                                <button class="btn btn-outline-primary btn-sm mt-2"
-                                        onclick="copyVA()">
-                                    <i class="mdi mdi-content-copy me-1"></i> Salin Nomor
-                                </button>
-                            </div>
-                        </div>
-                        <p class="text-muted mt-2 small">Transfer tepat sesuai nominal untuk verifikasi otomatis</p>
-                    @else
-                        <div class="alert alert-warning">
-                            <i class="mdi mdi-alert-circle me-2"></i>
-                            Nomor Virtual Account sedang diproses. Silakan muat ulang halaman atau hubungi admin.
-                        </div>
-                    @endif
-                </div>
-                @endif
 
                 {{-- Countdown Timer --}}
-                @if($pesanan->status_bayar == 0)
                 <div class="text-center mb-3">
                     <p class="text-muted mb-1">Selesaikan pembayaran dalam:</p>
                     <h4 class="text-danger fw-bold" id="countdown">24:00:00</h4>
@@ -156,22 +120,45 @@
 @endsection
 
 @push('scripts')
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+{{-- Midtrans Snap.js --}}
+<script src="{{ $snapJsUrl }}" data-client-key="{{ $clientKey }}"></script>
+
 <script>
-    @if($pesanan->qr_string)
-    new QRCode(document.getElementById('qrcode'), {
-        text: @json($pesanan->qr_string),
-        width: 280,
-        height: 280,
-        colorDark: '#000000',
-        colorLight: '#ffffff',
-        correctLevel: QRCode.CorrectLevel.M
-    });
-    @endif
-    const pesananId     = {{ $pesanan->id_pesanan }};
     const statusBayar   = {{ $pesanan->status_bayar }};
     const statusUrl     = "{{ route('payment.status', $pesanan->id_pesanan) }}";
     const successUrl    = "{{ route('customer.status', $pesanan->id_pesanan) }}";
+    @if($pesanan->midtrans_token)
+    const snapToken     = @json($pesanan->midtrans_token);
+    @else
+    const snapToken     = null;
+    @endif
+
+    // Trigger Snap modal on button click
+    const payButton = document.getElementById('pay-button');
+    if (payButton && snapToken) {
+        payButton.addEventListener('click', function () {
+            snap.pay(snapToken, {
+                onSuccess: function (result) {
+                    document.getElementById('statusBadge').innerHTML =
+                        '<span class="badge bg-success fs-5 px-4 py-2">✅ LUNAS - Mengalihkan...</span>';
+                    payButton.disabled = true;
+                    setTimeout(function () {
+                        window.location.href = successUrl;
+                    }, 1500);
+                },
+                onPending: function (result) {
+                    document.getElementById('statusBadge').innerHTML =
+                        '<span class="badge bg-warning text-dark fs-5 px-4 py-2">⏳ MENUNGGU KONFIRMASI</span>';
+                },
+                onError: function (result) {
+                    alert('Pembayaran gagal. Silakan coba lagi.');
+                },
+                onClose: function () {
+                    // User closed the modal without completing payment
+                }
+            });
+        });
+    }
 
     // Polling status setiap 5 detik jika masih pending
     if (statusBayar === 0) {
@@ -198,47 +185,21 @@
         }, 5000);
 
         // Countdown timer: 24 jam dari waktu buat pesanan
-        const createdAt = new Date("{{ $pesanan->timestamp }}").getTime();
-        const expiresAt = createdAt + (24 * 60 * 60 * 1000);
-        const countdownEl = document.getElementById('countdown');
+        const createdAt         = new Date("{{ $pesanan->timestamp }}").getTime();
+        const expiresAt         = createdAt + (24 * 60 * 60 * 1000);
+        const countdownEl       = document.getElementById('countdown');
         const countdownInterval = setInterval(function () {
             const remaining = Math.max(0, Math.floor((expiresAt - Date.now()) / 1000));
             if (remaining <= 0) {
                 clearInterval(countdownInterval);
-                countdownEl.textContent = 'EXPIRED';
+                if (countdownEl) countdownEl.textContent = 'EXPIRED';
                 return;
             }
             const h = String(Math.floor(remaining / 3600)).padStart(2, '0');
             const m = String(Math.floor((remaining % 3600) / 60)).padStart(2, '0');
             const s = String(remaining % 60).padStart(2, '0');
-            countdownEl.textContent = h + ':' + m + ':' + s;
+            if (countdownEl) countdownEl.textContent = h + ':' + m + ':' + s;
         }, 1000);
-    }
-
-    function copyVA() {
-        const va = document.getElementById('vaNumber').innerText.trim();
-        const copyBtn = document.querySelector('[onclick="copyVA()"]');
-        navigator.clipboard.writeText(va).then(function () {
-            const original = copyBtn.innerHTML;
-            copyBtn.innerHTML = '<i class="mdi mdi-check me-1"></i> Tersalin!';
-            copyBtn.classList.replace('btn-outline-primary', 'btn-success');
-            setTimeout(function () {
-                copyBtn.innerHTML = original;
-                copyBtn.classList.replace('btn-success', 'btn-outline-primary');
-            }, 2000);
-        }).catch(function () {
-            // Fallback for browsers that don't support clipboard API
-            const el = document.createElement('textarea');
-            el.value = va;
-            document.body.appendChild(el);
-            el.select();
-            document.execCommand('copy');
-            document.body.removeChild(el);
-            copyBtn.innerHTML = '<i class="mdi mdi-check me-1"></i> Tersalin!';
-            setTimeout(function () {
-                copyBtn.innerHTML = '<i class="mdi mdi-content-copy me-1"></i> Salin Nomor';
-            }, 2000);
-        });
     }
 </script>
 @endpush

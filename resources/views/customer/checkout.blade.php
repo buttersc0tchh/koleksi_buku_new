@@ -91,24 +91,11 @@
 
                     {{-- Metode Bayar --}}
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Metode Bayar <span class="text-danger">*</span></label>
-                        <div class="form-check mb-2">
-                            <input class="form-check-input" type="radio" name="metode_bayar"
-                                   id="qris" value="qris" required>
-                            <label class="form-check-label" for="qris">
-                                <i class="mdi mdi-qrcode me-1 text-success"></i> QRIS
-                            </label>
-                        </div>
-                        <div class="form-check mb-2">
-                            <input class="form-check-input" type="radio" name="metode_bayar"
-                                   id="va" value="virtual_account">
-                            <label class="form-check-label" for="va">
-                                <i class="mdi mdi-bank me-1 text-primary"></i> Virtual Account (BCA)
-                            </label>
-                        </div>
-                        @error('metode_bayar')
-                            <div class="text-danger small">{{ $message }}</div>
-                        @enderror
+                        <label class="form-label fw-bold">Metode Bayar</label>
+                        <p class="text-muted small mb-0">
+                            <i class="mdi mdi-information-outline me-1"></i>
+                            QRIS & Virtual Account tersedia di halaman pembayaran
+                        </p>
                     </div>
 
                     <div class="d-grid gap-2">
