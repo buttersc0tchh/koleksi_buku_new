@@ -1,4 +1,4 @@
-@extends('layouts.master')
+@extends('layouts.guest')
 
 @section('content')
 <div class="page-header">
@@ -65,7 +65,10 @@
                 @if($pesanan->metode_bayar === 'qris')
                 <div class="text-center mb-4" id="qrisSection">
                     <h5 class="mb-3"><i class="mdi mdi-qrcode me-2"></i> Scan QR Code Berikut</h5>
-                    @if($pesanan->qr_url)
+                    @if($pesanan->qr_string)
+                        <div id="qrcode" class="d-inline-block border rounded p-2"></div>
+                        <p class="text-muted mt-2 small">Scan dengan aplikasi mobile banking atau e-wallet Anda</p>
+                    @elseif($pesanan->qr_url)
                         <img src="{{ $pesanan->qr_url }}" alt="QR Code Pembayaran"
                              class="img-fluid border rounded p-2"
                              style="max-width: 280px;">
@@ -153,7 +156,18 @@
 @endsection
 
 @push('scripts')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
+    @if($pesanan->qr_string)
+    new QRCode(document.getElementById('qrcode'), {
+        text: @json($pesanan->qr_string),
+        width: 280,
+        height: 280,
+        colorDark: '#000000',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M
+    });
+    @endif
     const pesananId     = {{ $pesanan->id_pesanan }};
     const statusBayar   = {{ $pesanan->status_bayar }};
     const statusUrl     = "{{ route('payment.status', $pesanan->id_pesanan) }}";
