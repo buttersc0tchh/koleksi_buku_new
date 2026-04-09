@@ -59,7 +59,6 @@ class CustomerController extends Controller
             'customer_name'  => 'required|string|max:255',
             'customer_email' => 'required|email|max:255',
             'customer_phone' => 'required|string|max:20',
-            'metode_bayar'   => 'required|in:qris,virtual_account',
             'items'          => 'required|array',
         ]);
 
@@ -89,15 +88,15 @@ class CustomerController extends Controller
 
         // Simpan pesanan dengan status pending
         $pesanan = Pesanan::create([
-            'nama'             => $request->customer_name,
-            'customer_name'    => $request->customer_name,
-            'customer_email'   => $request->customer_email,
-            'customer_phone'   => $request->customer_phone,
-            'timestamp'        => now(),
-            'total'            => $total,
-            'metode_bayar'     => $request->metode_bayar,
-            'status_bayar'     => 0,
-            'midtrans_order_id'=> $orderId,
+            'nama'              => $request->customer_name,
+            'customer_name'     => $request->customer_name,
+            'customer_email'    => $request->customer_email,
+            'customer_phone'    => $request->customer_phone,
+            'timestamp'         => now(),
+            'total'             => $total,
+            'metode_bayar'      => 'snap',
+            'status_bayar'      => 0,
+            'midtrans_order_id' => $orderId,
         ]);
 
         // Simpan detail pesanan
@@ -113,12 +112,12 @@ class CustomerController extends Controller
             ]);
         }
 
-        // Panggil Midtrans API
-        $serverKey  = config('services.midtrans.server_key');
+        // Panggil Midtrans Snap API untuk mendapatkan token
+        $serverKey    = config('services.midtrans.server_key');
         $isProduction = config('services.midtrans.is_production', false);
-        $baseUrl    = $isProduction
-            ? 'https://api.midtrans.com'
-            : 'https://api.sandbox.midtrans.com';
+        $snapBaseUrl  = $isProduction
+            ? 'https://app.midtrans.com'
+            : 'https://app.sandbox.midtrans.com';
 
         $itemDetails = [];
         foreach ($cartItems as $item) {
@@ -126,7 +125,7 @@ class CustomerController extends Controller
                 'id'       => (string) $item['menu']->id_menu,
                 'price'    => $item['menu']->harga,
                 'quantity' => $item['jumlah'],
-                'name'     => $item['menu']->nama_menu,
+                'name'     => substr($item['menu']->nama_menu, 0, 50), // Midtrans item name limit
             ];
         }
 
@@ -135,51 +134,37 @@ class CustomerController extends Controller
                 'order_id'     => $orderId,
                 'gross_amount' => $total,
             ],
-            'item_details' => $itemDetails,
+            'item_details'     => $itemDetails,
             'customer_details' => [
                 'first_name' => $request->customer_name,
                 'email'      => $request->customer_email,
                 'phone'      => $request->customer_phone,
             ],
+            'enabled_payments' => [
+                'qris',
+                'bca_va',
+                'bni_va',
+                'bri_va',
+                'permata_va',
+                'other_va',
+            ],
         ];
 
-        if ($request->metode_bayar === 'qris') {
-            $payload['payment_type'] = 'qris';
-        } else {
-            $payload['payment_type'] = 'bank_transfer';
-            $payload['bank_transfer'] = ['bank' => 'bca'];
-        }
-
+        $snapToken = null;
         try {
             $response = Http::withBasicAuth($serverKey, '')
-                ->post("{$baseUrl}/v2/charge", $payload);
+                ->post("{$snapBaseUrl}/snap/v1/transactions", $payload);
 
             $result = $response->json();
 
-            // Midtrans returns status_code as string (e.g. "201"), use loose comparison
-            $statusCode = (string) ($result['status_code'] ?? '');
-            if (in_array($statusCode, ['200', '201'], true)) {
-                if ($request->metode_bayar === 'qris') {
-                    $qrUrl    = null;
-                    $qrString = $result['qr_string'] ?? null;
-                    foreach (($result['actions'] ?? []) as $action) {
-                        if ($action['name'] === 'generate-qr-code') {
-                            $qrUrl = $action['url'];
-                            break;
-                        }
-                    }
-                    $pesanan->update(['qr_url' => $qrUrl, 'qr_string' => $qrString]);
-                } else {
-                    $vaNumbers = $result['va_numbers'] ?? [];
-                    $vaNumber  = !empty($vaNumbers) ? $vaNumbers[0]['va_number'] : null;
-                    $vaBank    = !empty($vaNumbers) ? ($vaNumbers[0]['bank'] ?? 'bca') : 'bca';
-                    $pesanan->update(['va_number' => $vaNumber, 'va_bank' => $vaBank]);
-                }
+            if (isset($result['token'])) {
+                $snapToken = $result['token'];
+                $pesanan->update(['midtrans_token' => $snapToken]);
             } else {
-                Log::warning('Midtrans charge failed', ['response' => $result, 'order_id' => $orderId]);
+                Log::warning('Midtrans Snap token not received', ['response' => $result, 'order_id' => $orderId]);
             }
         } catch (\Exception $e) {
-            Log::error('Midtrans API error: ' . $e->getMessage(), ['order_id' => $orderId]);
+            Log::error('Midtrans Snap API error: ' . $e->getMessage(), ['order_id' => $orderId]);
         }
 
         return redirect()->route('payment.show', $pesanan->id_pesanan);
@@ -191,7 +176,13 @@ class CustomerController extends Controller
             ->with('detail.menu')
             ->firstOrFail();
 
-        return view('customer.payment', compact('pesanan'));
+        $isProduction = config('services.midtrans.is_production', false);
+        $clientKey    = config('services.midtrans.client_key');
+        $snapJsUrl    = $isProduction
+            ? 'https://app.midtrans.com/snap/snap.js'
+            : 'https://app.sandbox.midtrans.com/snap/snap.js';
+
+        return view('customer.payment', compact('pesanan', 'clientKey', 'snapJsUrl'));
     }
 
     public function paymentStatus($id_pesanan)
