@@ -156,7 +156,12 @@
     const openSnap = function () {
         if (snapOpened || !snapToken) return;
         snapOpened = true;
-        snap.pay(snapToken, {
+        if (typeof window.snap === 'undefined') {
+            snapOpened = false;
+            return;
+        }
+
+        window.snap.pay(snapToken, {
             onSuccess: function (result) {
                 document.getElementById('statusBadge').innerHTML =
                     '<span class="badge bg-success fs-5 px-4 py-2">✅ LUNAS - Mengalihkan...</span>';
@@ -186,7 +191,18 @@
     }
 
     if (autoOpenSnap && statusBayar === 0 && snapToken) {
-        window.setTimeout(openSnap, 400);
+        let attempts = 0;
+        const waitSnap = window.setInterval(function () {
+            attempts++;
+            if (typeof window.snap !== 'undefined') {
+                window.clearInterval(waitSnap);
+                openSnap();
+                return;
+            }
+            if (attempts >= 10) {
+                window.clearInterval(waitSnap);
+            }
+        }, 300);
     }
 
     // Polling status setiap 5 detik jika masih pending

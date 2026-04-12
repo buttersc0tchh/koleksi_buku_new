@@ -249,7 +249,7 @@ class CustomerController extends Controller
                 ],
                 'item_details'     => $itemDetails,
                 'customer_details' => [
-                    'first_name' => $pesanan->customer_name ?: $pesanan->nama,
+                    'first_name' => $pesanan->customer_name ?: ($pesanan->nama ?? 'Customer'),
                     'email'      => $pesanan->customer_email,
                     'phone'      => $pesanan->customer_phone,
                 ],
