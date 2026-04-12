@@ -60,6 +60,7 @@ class CustomerController extends Controller
             'customer_name'  => 'required|string|max:255',
             'customer_email' => 'required|email|max:255',
             'customer_phone' => 'required|string|max:20',
+            'metode_bayar'   => 'required|in:qris,va',
             'items'          => 'required|array',
         ]);
 
@@ -85,8 +86,6 @@ class CustomerController extends Controller
             return redirect()->route('customer.index')->with('error', 'Tidak ada item valid!');
         }
 
-        $orderId = 'ORDER-' . time() . '-' . rand(1000, 9999);
-
         // Simpan pesanan dengan status pending
         $pesanan = Pesanan::create([
             'nama'              => $request->customer_name,
@@ -95,9 +94,9 @@ class CustomerController extends Controller
             'customer_phone'    => $request->customer_phone,
             'timestamp'         => now(),
             'total'             => $total,
-            'metode_bayar'      => 'snap',
+            'metode_bayar'      => $request->metode_bayar,
             'status_bayar'      => 0,
-            'midtrans_order_id' => $orderId,
+            'midtrans_order_id' => null,
         ]);
 
         // Simpan detail pesanan
@@ -113,52 +112,12 @@ class CustomerController extends Controller
             ]);
         }
 
-        // Configure Midtrans library
-        MidtransConfig::$serverKey    = config('midtrans.server_key');
-        MidtransConfig::$isProduction = config('midtrans.is_production', false);
-        MidtransConfig::$isSanitized  = true;
-        MidtransConfig::$is3ds        = true;
+        $this->generateAndStoreSnapToken($pesanan);
 
-        $itemDetails = [];
-        foreach ($cartItems as $item) {
-            $itemDetails[] = [
-                'id'       => (string) $item['menu']->id_menu,
-                'price'    => (int) $item['menu']->harga,
-                'quantity' => (int) $item['jumlah'],
-                'name'     => substr($item['menu']->nama_menu, 0, 50),
-            ];
-        }
-
-        $params = [
-            'transaction_details' => [
-                'order_id'     => $orderId,
-                'gross_amount' => (int) $total,
-            ],
-            'item_details'     => $itemDetails,
-            'customer_details' => [
-                'first_name' => $request->customer_name,
-                'email'      => $request->customer_email,
-                'phone'      => $request->customer_phone,
-            ],
-            'enabled_payments' => [
-                'qris',
-                'bca_va',
-                'bni_va',
-                'bri_va',
-                'permata_va',
-                'other_va',
-            ],
-        ];
-
-        $snapToken = null;
-        try {
-            $snapToken = Snap::getSnapToken($params);
-            $pesanan->update(['midtrans_token' => $snapToken]);
-        } catch (\Exception $e) {
-            Log::error('Midtrans Snap token error: ' . $e->getMessage(), ['order_id' => $orderId]);
-        }
-
-        return redirect()->route('payment.show', $pesanan->id_pesanan);
+        return redirect()->route('payment.show', [
+            'id_pesanan' => $pesanan->id_pesanan,
+            'autopay'    => 1,
+        ]);
     }
 
     public function showPayment($id_pesanan)
@@ -167,11 +126,16 @@ class CustomerController extends Controller
             ->with('detail.menu')
             ->firstOrFail();
 
-        $isProduction = config('midtrans.is_production', false);
+        if ((int) $pesanan->status_bayar === 0 && empty($pesanan->midtrans_token)) {
+            $this->generateAndStoreSnapToken($pesanan);
+            $pesanan->refresh()->load('detail.menu');
+        }
+
         $clientKey    = config('midtrans.client_key');
         $snapJsUrl    = config('midtrans.snap_url');
+        $autoOpenSnap = request()->boolean('autopay', false);
 
-        return view('customer.payment', compact('pesanan', 'clientKey', 'snapJsUrl'));
+        return view('customer.payment', compact('pesanan', 'clientKey', 'snapJsUrl', 'autoOpenSnap'));
     }
 
     public function paymentStatus($id_pesanan)
@@ -246,5 +210,67 @@ class CustomerController extends Controller
             ->firstOrFail();
 
         return view('customer.status', compact('pesanan'));
+    }
+
+    private function generateAndStoreSnapToken(Pesanan $pesanan): ?string
+    {
+        $pesanan->loadMissing('detail.menu');
+        $orderId = $pesanan->midtrans_order_id ?: 'ORDER-' . $pesanan->id_pesanan;
+
+        $itemDetails = [];
+        foreach ($pesanan->detail as $detail) {
+            $itemDetails[] = [
+                'id'       => (string) $detail->id_menu,
+                'price'    => (int) $detail->harga,
+                'quantity' => (int) $detail->jumlah,
+                'name'     => substr((string) optional($detail->menu)->nama_menu ?: 'Item', 0, 50),
+            ];
+        }
+
+        if ($pesanan->metode_bayar === 'qris') {
+            $enabledPayments = ['qris'];
+        } elseif ($pesanan->metode_bayar === 'va') {
+            $enabledPayments = ['bca_va', 'bni_va', 'bri_va', 'permata_va', 'other_va'];
+        } else {
+            // Backward compatibility for older "snap" data
+            $enabledPayments = ['qris', 'bca_va', 'bni_va', 'bri_va', 'permata_va', 'other_va'];
+        }
+
+        MidtransConfig::$serverKey    = config('midtrans.server_key');
+        MidtransConfig::$isProduction = config('midtrans.is_production', false);
+        MidtransConfig::$isSanitized  = true;
+        MidtransConfig::$is3ds        = true;
+
+        try {
+            $snapToken = Snap::getSnapToken([
+                'transaction_details' => [
+                    'order_id'     => $orderId,
+                    'gross_amount' => (int) $pesanan->total,
+                ],
+                'item_details'     => $itemDetails,
+                'customer_details' => [
+                    'first_name' => $pesanan->customer_name ?: $pesanan->nama,
+                    'email'      => $pesanan->customer_email,
+                    'phone'      => $pesanan->customer_phone,
+                ],
+                'enabled_payments' => $enabledPayments,
+            ]);
+
+            $pesanan->update([
+                'midtrans_order_id' => $orderId,
+                'midtrans_token'    => $snapToken,
+            ]);
+
+            return $snapToken;
+        } catch (\Throwable $e) {
+            Log::error('Midtrans Snap token error', [
+                'id_pesanan' => $pesanan->id_pesanan,
+                'order_id'   => $orderId,
+                'metode'     => $pesanan->metode_bayar,
+                'error'      => $e->getMessage(),
+            ]);
+
+            return null;
+        }
     }
 }

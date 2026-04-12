@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Login - OLIVE BABY SHOP</title>
+    <title>Login Admin - OLIVE BABY SHOP</title>
     <link rel="stylesheet" href="{{ asset('assets/vendors/mdi/css/materialdesignicons.min.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/vendors/ti-icons/css/themify-icons.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/vendors/css/vendor.bundle.base.css') }}">
@@ -21,8 +21,8 @@
                 <div class="brand-logo">
                   <img src="{{ asset('assets/images/logo.svg') }}">
                 </div>
-                <h4>Hello! let's get started</h4>
-                <h6 class="font-weight-light">Sign in to continue.</h6>
+                <h4>Login Admin</h4>
+                <h6 class="font-weight-light">Masuk dengan email/password atau Google.</h6>
                 
                 <form class="pt-3" method="POST" action="{{ route('login') }}">
                   @csrf
@@ -42,7 +42,7 @@
                   </div>
                 
                   <button type="submit" class="btn btn-block btn-gradient-primary btn-lg font-weight-medium auth-form-btn">
-                    SIGN IN
+                    LOGIN ADMIN
                   </button>
                 </div>
 
@@ -50,7 +50,7 @@
                   <a href="{{ route('auth.google.redirect') }}" 
                     class="btn btn-block btn-outline-danger btn-lg font-weight-medium auth-form-btn d-flex align-items-center justify-content-center">
                     <i class="fa fa-google me-2"></i>
-                    Sign in with Google
+                    Login dengan Google
                   </a>
                 </div>
 

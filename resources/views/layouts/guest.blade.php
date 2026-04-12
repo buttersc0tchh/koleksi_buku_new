@@ -49,7 +49,7 @@
           @else
           <li class="nav-item">
             <a class="nav-link btn btn-primary text-white px-3 my-2 me-2" href="{{ route('login') }}">
-              <i class="mdi mdi-login me-1"></i> Login
+              <i class="mdi mdi-login me-1"></i> Login Admin
             </a>
           </li>
           @endauth
