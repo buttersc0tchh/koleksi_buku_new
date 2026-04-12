@@ -91,11 +91,33 @@
 
                     {{-- Metode Bayar --}}
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Metode Bayar</label>
-                        <p class="text-muted small mb-0">
-                            <i class="mdi mdi-information-outline me-1"></i>
-                            QRIS & Virtual Account tersedia di halaman pembayaran
-                        </p>
+                        <label class="form-label fw-bold d-block">Metode Bayar <span class="text-danger">*</span></label>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input @error('metode_bayar') is-invalid @enderror"
+                                   type="radio"
+                                   name="metode_bayar"
+                                   id="metode_bayar_qris"
+                                   value="qris"
+                                   {{ old('metode_bayar', 'qris') === 'qris' ? 'checked' : '' }}
+                                   required>
+                            <label class="form-check-label" for="metode_bayar_qris">
+                                QRIS
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input @error('metode_bayar') is-invalid @enderror"
+                                   type="radio"
+                                   name="metode_bayar"
+                                   id="metode_bayar_va"
+                                   value="va"
+                                   {{ old('metode_bayar') === 'va' ? 'checked' : '' }}>
+                            <label class="form-check-label" for="metode_bayar_va">
+                                Virtual Account (VA)
+                            </label>
+                        </div>
+                        @error('metode_bayar')
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                        @enderror
                     </div>
 
                     <div class="d-grid gap-2">
