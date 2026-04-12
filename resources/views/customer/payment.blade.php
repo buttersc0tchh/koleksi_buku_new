@@ -143,7 +143,7 @@
     const statusBayar   = {{ $pesanan->status_bayar }};
     const statusUrl     = "{{ route('payment.status', $pesanan->id_pesanan) }}";
     const successUrl    = "{{ route('customer.status', $pesanan->id_pesanan) }}";
-    const autoOpenSnap  = {{ !empty($autoOpenSnap) ? 'true' : 'false' }};
+    const autoOpenSnap  = {{ json_encode((bool) $autoOpenSnap) }};
     @if($pesanan->midtrans_token)
     const snapToken     = @json($pesanan->midtrans_token);
     @else
