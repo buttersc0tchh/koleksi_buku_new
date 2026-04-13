@@ -289,21 +289,13 @@
               <div class="collapse {{ Request::is('vendor*') ? 'show' : '' }}" id="vendor-menu">
                 <ul class="nav flex-column sub-menu">
                   <li class="nav-item">
-                    <a class="nav-link" href="{{ route('vendor.index') }}">Kelola Vendor & Menu</a>
+                    <a class="nav-link" href="{{ route('vendor.index') }}">Kelola Vendor & Barang</a>
                   </li>
                   <li class="nav-item">
                     <a class="nav-link" href="{{ route('vendor.pesanan') }}">Pesanan Lunas</a>
                   </li>
                 </ul>
               </div>
-            </li>
-
-            {{-- Payment Gateway - Customer --}}
-            <li class="nav-item {{ Request::is('customer*') ? 'active' : '' }}">
-              <a class="nav-link" href="{{ route('customer.index') }}">
-                <span class="menu-title">Customer</span>
-                <i class="mdi mdi-account menu-icon"></i>
-              </a>
             </li>
 
           </ul>

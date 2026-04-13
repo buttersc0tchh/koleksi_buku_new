@@ -4,8 +4,8 @@
 <div class="page-header">
     <h3 class="page-title">
         <span class="page-title-icon bg-gradient-info text-white me-2">
-            <i class="mdi mdi-food"></i>
-        </span> Menu Vendor: {{ $vendor->nama_vendor }}
+            <i class="mdi mdi-hanger"></i>
+        </span> Barang Vendor: {{ $vendor->nama_vendor }}
     </h3>
 </div>
 
@@ -20,13 +20,13 @@
     <div class="col-md-4 grid-margin">
         <div class="card">
             <div class="card-body">
-                <h4 class="card-title">Tambah Menu</h4>
+                <h4 class="card-title">Tambah Barang</h4>
                 <form action="{{ route('vendor.menu.store', $vendor->id_vendor) }}" method="POST">
                     @csrf
                     <div class="mb-3">
-                        <label class="form-label">Nama Menu</label>
+                        <label class="form-label">Nama Barang</label>
                         <input type="text" name="nama_menu" class="form-control @error('nama_menu') is-invalid @enderror"
-                               placeholder="Nama menu..." value="{{ old('nama_menu') }}" required>
+                               placeholder="Nama barang..." value="{{ old('nama_menu') }}" required>
                         @error('nama_menu')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -45,7 +45,7 @@
                                placeholder="https://..." value="{{ old('path_gambar') }}">
                     </div>
                     <button type="submit" class="btn btn-primary">
-                        <i class="mdi mdi-plus"></i> Tambah Menu
+                        <i class="mdi mdi-plus"></i> Tambah Barang
                     </button>
                     <a href="{{ route('vendor.index') }}" class="btn btn-secondary ms-2">
                         <i class="mdi mdi-arrow-left"></i> Kembali
@@ -58,13 +58,13 @@
     <div class="col-md-8 grid-margin">
         <div class="card">
             <div class="card-body">
-                <h4 class="card-title">Daftar Menu</h4>
+                <h4 class="card-title">Daftar Barang</h4>
                 <div class="table-responsive">
                     <table class="table table-bordered table-striped">
                         <thead class="thead-dark">
                             <tr>
                                 <th>#</th>
-                                <th>Nama Menu</th>
+                                <th>Nama Barang</th>
                                 <th>Harga</th>
                                 <th>Gambar</th>
                                 <th>Aksi</th>

@@ -1,4 +1,4 @@
-@extends('layouts.master')
+@extends('layouts.guest')
 
 @section('content')
 <div class="page-header">
@@ -91,6 +91,15 @@
                         </tfoot>
                     </table>
                 </div>
+
+                @if($pesanan->status_bayar == 1 && $qrCode)
+                <div class="text-center my-4">
+                     <h6 class="mb-2">QR Code Pesanan</h6>
+                    <img src="data:image/png;base64,{{ $qrCode }}"
+                    alt="QR Code" style="width:150px; height:150px;">
+                    <p class="text-muted small mt-1">ID Pesanan: #{{ $pesanan->id_pesanan }}</p>
+                </div>
+                @endif
 
                 <div class="mt-3">
                     <a href="{{ route('customer.index') }}" class="btn btn-primary">

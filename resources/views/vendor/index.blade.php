@@ -59,7 +59,7 @@
                                 <td>{{ $vendor->nama_vendor }}</td>
                                 <td>
                                     <a href="{{ route('vendor.menu', $vendor->id_vendor) }}" class="btn btn-sm btn-info">
-                                        <i class="mdi mdi-food"></i> Kelola Menu
+                                        <i class="mdi mdi-hanger"></i> Kelola Barang
                                     </a>
                                 </td>
                             </tr>

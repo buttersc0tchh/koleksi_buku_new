@@ -83,7 +83,20 @@ class BarangController extends Controller
         $barangs  = Barang::whereIn('id_barang', $selected)->orderBy('id_barang')->get();
         $startPos = ($y - 1) * 5 + ($x - 1);
 
-        $pdf = Pdf::loadView('barang.cetak', compact('barangs', 'startPos'))
+        // Generate barcode PNG base64
+        $generator = new \Picqer\Barcode\BarcodeGeneratorPNG();
+        $barcodes  = [];
+        foreach ($barangs as $b) {
+            $png = $generator->getBarcode(
+                $b->id_barang,
+                $generator::TYPE_CODE_128,
+                1.5,
+                40
+            );
+            $barcodes[$b->id_barang] = base64_encode($png);
+        }
+
+        $pdf = Pdf::loadView('barang.cetak', compact('barangs', 'startPos', 'barcodes'))
             ->setPaper('A4', 'portrait');
 
         return $pdf->stream('tag-harga.pdf');

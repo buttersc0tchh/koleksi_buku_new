@@ -16,7 +16,6 @@ class CustomerController extends Controller
     public function index()
     {
         $vendors = Vendor::with('menu')->get();
-
         return view('customer.index', compact('vendors'));
     }
 
@@ -28,7 +27,6 @@ class CustomerController extends Controller
             return redirect()->route('customer.index')->with('error', 'Pilih menu terlebih dahulu!');
         }
 
-        // Hitung total
         $total     = 0;
         $cartItems = [];
         foreach ($items as $id_menu => $jumlah) {
@@ -87,7 +85,6 @@ class CustomerController extends Controller
 
         $orderId = 'ORDER-' . time() . '-' . rand(1000, 9999);
 
-        // Simpan pesanan dengan status pending
         $pesanan = Pesanan::create([
             'nama'              => $request->customer_name,
             'customer_name'     => $request->customer_name,
@@ -95,12 +92,11 @@ class CustomerController extends Controller
             'customer_phone'    => $request->customer_phone,
             'timestamp'         => now(),
             'total'             => $total,
-            'metode_bayar'      => 'snap',
+            'metode_bayar'      => $request->metode_bayar == 'qris' ? 'QRIS' : 'Virtual Account',
             'status_bayar'      => 0,
             'midtrans_order_id' => $orderId,
         ]);
 
-        // Simpan detail pesanan
         foreach ($cartItems as $item) {
             DetailPesanan::create([
                 'id_menu'    => $item['menu']->id_menu,
@@ -113,7 +109,6 @@ class CustomerController extends Controller
             ]);
         }
 
-        // Configure Midtrans library
         MidtransConfig::$serverKey    = config('midtrans.server_key');
         MidtransConfig::$isProduction = config('midtrans.is_production', false);
         MidtransConfig::$isSanitized  = true;
@@ -141,7 +136,7 @@ class CustomerController extends Controller
                 'phone'      => $request->customer_phone,
             ],
             'enabled_payments' => [
-                'qris',
+                'other_qris',
                 'bca_va',
                 'bni_va',
                 'bri_va',
@@ -167,9 +162,8 @@ class CustomerController extends Controller
             ->with('detail.menu')
             ->firstOrFail();
 
-        $isProduction = config('midtrans.is_production', false);
-        $clientKey    = config('midtrans.client_key');
-        $snapJsUrl    = config('midtrans.snap_url');
+        $clientKey = config('midtrans.client_key');
+        $snapJsUrl = config('midtrans.snap_url');
 
         return view('customer.payment', compact('pesanan', 'clientKey', 'snapJsUrl'));
     }
@@ -178,7 +172,6 @@ class CustomerController extends Controller
     {
         $pesanan = Pesanan::where('id_pesanan', $id_pesanan)->firstOrFail();
 
-        // Cek status ke Midtrans jika masih pending
         if ($pesanan->status_bayar == 0 && $pesanan->midtrans_order_id) {
             MidtransConfig::$serverKey    = config('midtrans.server_key');
             MidtransConfig::$isProduction = config('midtrans.is_production', false);
@@ -206,9 +199,7 @@ class CustomerController extends Controller
 
     public function paymentCallback(Request $request)
     {
-        $serverKey = config('midtrans.server_key');
-
-        // Verifikasi signature Midtrans
+        $serverKey         = config('midtrans.server_key');
         $orderId           = $request->input('order_id');
         $statusCode        = $request->input('status_code');
         $grossAmount       = $request->input('gross_amount');
@@ -227,7 +218,6 @@ class CustomerController extends Controller
             return response()->json(['message' => 'Order not found'], 404);
         }
 
-        // Status mapping: 0=pending, 1=lunas/paid, 2=expired, 3=cancelled
         if (in_array($transactionStatus, ['settlement', 'capture'])) {
             $pesanan->update(['status_bayar' => 1]);
         } elseif ($transactionStatus === 'expire') {
@@ -245,6 +235,15 @@ class CustomerController extends Controller
             ->with('detail.menu')
             ->firstOrFail();
 
-        return view('customer.status', compact('pesanan'));
+        // Generate QR Code
+        $qrCode = null;
+        if ($pesanan->status_bayar == 1) {
+            $writer    = new \Endroid\QrCode\Writer\PngWriter();
+            $qrCodeObj = new \Endroid\QrCode\QrCode('Pesanan #' . $pesanan->id_pesanan);
+            $result = $writer->write($qrCodeObj);
+            $qrCode = base64_encode($result->getString());
+        }
+
+        return view('customer.status', compact('pesanan', 'qrCode'));
     }
 }

@@ -62,7 +62,7 @@ class VendorController extends Controller
     {
         $pesanan = Pesanan::where('status_bayar', 1)
             ->with('detail.menu')
-            ->orderByDesc('timestamp')
+            ->orderBy('timestamp', 'asc')
             ->get();
 
         return view('vendor.pesanan', compact('pesanan'));

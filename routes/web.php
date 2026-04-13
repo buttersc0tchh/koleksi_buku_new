@@ -14,6 +14,7 @@ use App\Http\Controllers\WilayahController;
 use App\Http\Controllers\PosController;
 use App\Http\Controllers\VendorController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\CustomerDataController;
 
 // --- PUBLIC ROUTES (Tanpa Login) ---
 Route::get('/', function () {
@@ -78,6 +79,13 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/vendor/{id_vendor}/menu', [VendorController::class, 'menu'])->name('vendor.menu');
     Route::post('/vendor/{id_vendor}/menu', [VendorController::class, 'tambahMenu'])->name('vendor.menu.store');
     Route::delete('/vendor/menu/{id_menu}', [VendorController::class, 'hapusMenu'])->name('vendor.menu.hapus');
+
+    // Customer Data
+    Route::get('/customer-data', [CustomerDataController::class, 'index'])->name('customer-data.index');
+    Route::get('/customer-data/tambah-blob', [CustomerDataController::class, 'createBlob'])->name('customer-data.create-blob');
+    Route::post('/customer-data/tambah-blob', [CustomerDataController::class, 'storeBlob'])->name('customer-data.store-blob');
+    Route::get('/customer-data/tambah-path', [CustomerDataController::class, 'createPath'])->name('customer-data.create-path');
+    Route::post('/customer-data/tambah-path', [CustomerDataController::class, 'storePath'])->name('customer-data.store-path');
 });
 
 // Payment Gateway - Customer (Tanpa Login)
@@ -88,7 +96,7 @@ Route::get('/payment/{id_pesanan}', [CustomerController::class, 'showPayment'])-
 Route::get('/payment-status/{id_pesanan}', [CustomerController::class, 'paymentStatus'])->name('payment.status');
 Route::get('/customer/status/{id_pesanan}', [CustomerController::class, 'status'])->name('customer.status');
 
-// Midtrans Webhook (tanpa CSRF karena dari Midtrans server)
+// Midtrans Webhook
 Route::post('/webhook/midtrans', [CustomerController::class, 'paymentCallback'])->name('webhook.midtrans');
 
 // Debug SMTP

@@ -14,7 +14,6 @@
         <div class="card">
             <div class="card-body">
                 <h4 class="card-title">Ringkasan Pesanan</h4>
-
                 <div class="table-responsive">
                     <table class="table table-bordered">
                         <thead class="thead-dark">
@@ -91,11 +90,19 @@
 
                     {{-- Metode Bayar --}}
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Metode Bayar</label>
-                        <p class="text-muted small mb-0">
-                            <i class="mdi mdi-information-outline me-1"></i>
-                            QRIS & Virtual Account tersedia di halaman pembayaran
-                        </p>
+                        <label class="form-label fw-bold">Metode Bayar <span class="text-danger">*</span></label>
+                        <div class="d-flex flex-column gap-2 mt-1">
+                            <label class="border rounded p-2 d-flex align-items-center gap-2" style="cursor:pointer;">
+                                <input type="radio" name="metode_bayar" value="qris" checked>
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/a/a2/Logo_QRIS.png" height="22">
+                                <span class="fw-semibold">QRIS</span>
+                            </label>
+                            <label class="border rounded p-2 d-flex align-items-center gap-2" style="cursor:pointer;">
+                                <input type="radio" name="metode_bayar" value="va">
+                                <span style="font-size:18px;">🏦</span>
+                                <span class="fw-semibold">Virtual Account</span>
+                            </label>
+                        </div>
                     </div>
 
                     <div class="d-grid gap-2">

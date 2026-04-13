@@ -22,12 +22,20 @@
             height: 30mm;
             vertical-align: middle;
             text-align: center;
+            padding: 2px;
+        }
+
+        .label-barcode svg {
+            width: 90%;
+            max-width: 90%;
+            height: 15px;
         }
 
         .label-id {
-            font-size: 5pt;
+            font-size: 6pt;
             color: #888;
             display: block;
+            text-align: center;
             margin-bottom: 0.3mm;
         }
 
@@ -36,6 +44,7 @@
             font-weight: bold;
             color: #000;
             display: block;
+            text-align: center;
             line-height: 1.2;
             margin-bottom: 0.5mm;
         }
@@ -45,6 +54,7 @@
             font-weight: bold;
             color: #c00000;
             display: block;
+            text-align: center;
             margin-bottom: 0.3mm;
         }
 
@@ -52,6 +62,7 @@
             font-size: 6pt;
             color: #555;
             display: block;
+            text-align: center;
         }
     </style>
 </head>
@@ -76,6 +87,8 @@
         @else
             @php $b = $barangs[$barangIdx]; @endphp
             <td class="label-cell">
+                <img src="data:image/png;base64,{{ $barcodes[$b->id_barang] }}"
+                     style="width:90%; display:block; margin:0 auto; height:25px;">
                 <span class="label-id">{{ $b->id_barang }}</span>
                 <span class="label-nama">{{ $b->nama_barang }}</span>
                 <span class="label-harga">Rp {{ number_format($b->harga, 0, ',', '.') }}</span>
