@@ -37,6 +37,18 @@
                         Rp {{ number_format($pesanan->total, 0, ',', '.') }}
                     </div>
                 </div>
+                <div class="row mb-4">
+                    <div class="col-sm-4 fw-bold">Metode Dipilih</div>
+                    <div class="col-sm-8">
+                        @if($pesanan->metode_bayar === 'qris')
+                            <span class="badge bg-info text-dark">QRIS</span>
+                        @elseif($pesanan->metode_bayar === 'va')
+                            <span class="badge bg-primary">Virtual Account (VA)</span>
+                        @else
+                            <span class="badge bg-secondary">{{ strtoupper($pesanan->metode_bayar ?? '-') }}</span>
+                        @endif
+                    </div>
+                </div>
 
                 {{-- Status Badge --}}
                 <div class="text-center mb-4">
@@ -61,12 +73,16 @@
                         </button>
                         <p class="text-muted mt-2 small">
                             <i class="mdi mdi-information-outline me-1"></i>
-                            Pilih metode pembayaran (QRIS / Virtual Account) di jendela berikutnya
+                            @if($pesanan->metode_bayar === 'qris')
+                                Pembayaran dibuka langsung ke QRIS di jendela Midtrans.
+                            @else
+                                Pembayaran dibuka dengan opsi Virtual Account (BCA/BNI/BRI/Permata/Other VA).
+                            @endif
                         </p>
                     @else
                         <div class="alert alert-warning">
                             <i class="mdi mdi-alert-circle me-2"></i>
-                            Token pembayaran belum tersedia. Silakan muat ulang halaman atau hubungi admin.
+                            Token pembayaran belum tersedia. Sistem akan mencoba membuat ulang otomatis. Silakan muat ulang halaman jika masih gagal.
                         </div>
                         <button onclick="window.location.reload()" class="btn btn-outline-warning">
                             <i class="mdi mdi-refresh me-1"></i> Muat Ulang
@@ -127,6 +143,7 @@
     const statusBayar   = {{ $pesanan->status_bayar }};
     const statusUrl     = "{{ route('payment.status', $pesanan->id_pesanan) }}";
     const successUrl    = "{{ route('customer.status', $pesanan->id_pesanan) }}";
+    const autoOpenSnap  = {{ json_encode((bool) $autoOpenSnap) }};
     @if($pesanan->midtrans_token)
     const snapToken     = @json($pesanan->midtrans_token);
     @else
@@ -135,29 +152,57 @@
 
     // Trigger Snap modal on button click
     const payButton = document.getElementById('pay-button');
+    let snapOpened = false;
+    const openSnap = function () {
+        if (snapOpened || !snapToken) return;
+        snapOpened = true;
+        if (typeof window.snap === 'undefined') {
+            snapOpened = false;
+            return;
+        }
+
+        window.snap.pay(snapToken, {
+            onSuccess: function (result) {
+                document.getElementById('statusBadge').innerHTML =
+                    '<span class="badge bg-success fs-5 px-4 py-2">✅ LUNAS - Mengalihkan...</span>';
+                if (payButton) payButton.disabled = true;
+                setTimeout(function () {
+                    window.location.href = successUrl;
+                }, 1500);
+            },
+            onPending: function (result) {
+                document.getElementById('statusBadge').innerHTML =
+                    '<span class="badge bg-warning text-dark fs-5 px-4 py-2">⏳ MENUNGGU KONFIRMASI</span>';
+            },
+            onError: function (result) {
+                snapOpened = false;
+                alert('Pembayaran gagal. Silakan coba lagi.');
+            },
+            onClose: function () {
+                snapOpened = false;
+            }
+        });
+    };
+
     if (payButton && snapToken) {
         payButton.addEventListener('click', function () {
-            snap.pay(snapToken, {
-                onSuccess: function (result) {
-                    document.getElementById('statusBadge').innerHTML =
-                        '<span class="badge bg-success fs-5 px-4 py-2">✅ LUNAS - Mengalihkan...</span>';
-                    payButton.disabled = true;
-                    setTimeout(function () {
-                        window.location.href = successUrl;
-                    }, 1500);
-                },
-                onPending: function (result) {
-                    document.getElementById('statusBadge').innerHTML =
-                        '<span class="badge bg-warning text-dark fs-5 px-4 py-2">⏳ MENUNGGU KONFIRMASI</span>';
-                },
-                onError: function (result) {
-                    alert('Pembayaran gagal. Silakan coba lagi.');
-                },
-                onClose: function () {
-                    // User closed the modal without completing payment
-                }
-            });
+            openSnap();
         });
+    }
+
+    if (autoOpenSnap && statusBayar === 0 && snapToken) {
+        let attempts = 0;
+        const waitSnap = window.setInterval(function () {
+            attempts++;
+            if (typeof window.snap !== 'undefined') {
+                window.clearInterval(waitSnap);
+                openSnap();
+                return;
+            }
+            if (attempts >= 10) {
+                window.clearInterval(waitSnap);
+            }
+        }, 300);
     }
 
     // Polling status setiap 5 detik jika masih pending

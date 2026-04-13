@@ -58,6 +58,7 @@ class CustomerController extends Controller
             'customer_name'  => 'required|string|max:255',
             'customer_email' => 'required|email|max:255',
             'customer_phone' => 'required|string|max:20',
+            'metode_bayar'   => 'required|in:qris,va',
             'items'          => 'required|array',
         ]);
 
@@ -94,7 +95,7 @@ class CustomerController extends Controller
             'total'             => $total,
             'metode_bayar'      => $request->metode_bayar == 'qris' ? 'QRIS' : 'Virtual Account',
             'status_bayar'      => 0,
-            'midtrans_order_id' => $orderId,
+            'midtrans_order_id' => null,
         ]);
 
         foreach ($cartItems as $item) {
@@ -165,7 +166,7 @@ class CustomerController extends Controller
         $clientKey = config('midtrans.client_key');
         $snapJsUrl = config('midtrans.snap_url');
 
-        return view('customer.payment', compact('pesanan', 'clientKey', 'snapJsUrl'));
+        return view('customer.payment', compact('pesanan', 'clientKey', 'snapJsUrl', 'autoOpenSnap'));
     }
 
     public function paymentStatus($id_pesanan)
