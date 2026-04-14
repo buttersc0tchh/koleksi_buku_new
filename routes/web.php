@@ -1,20 +1,20 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Mail;
-use App\Http\Controllers\BukuController;
-use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\Auth\OtpController;
-use App\Http\Controllers\PdfController;
-use App\Http\Controllers\DokumenController;
 use App\Http\Controllers\BarangController;
-use App\Http\Controllers\WilayahController;
-use App\Http\Controllers\PosController;
-use App\Http\Controllers\VendorController;
+use App\Http\Controllers\BukuController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CustomerDataController;
+use App\Http\Controllers\DokumenController;
+use App\Http\Controllers\KategoriController;
+use App\Http\Controllers\PdfController;
+use App\Http\Controllers\PosController;
+use App\Http\Controllers\VendorController;
+use App\Http\Controllers\WilayahController;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Route;
 
 // --- PUBLIC ROUTES (Tanpa Login) ---
 Route::get('/', function () {
@@ -47,11 +47,17 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('barang', BarangController::class);
 
     // Soal 2 - Form Barang Tanpa DB
-    Route::get('/form-barang', function () { return view('formbarang.index'); })->name('formbarang.index');
-    Route::get('/form-barang-dt', function () { return view('formbarang.index_dt'); })->name('formbarang.indexDt');
+    Route::get('/form-barang', function () {
+        return view('formbarang.index');
+    })->name('formbarang.index');
+    Route::get('/form-barang-dt', function () {
+        return view('formbarang.index_dt');
+    })->name('formbarang.indexDt');
 
     // Soal 4 - Select Kota
-    Route::get('/select-kota', function () { return view('selectkota.index'); })->name('selectkota.index');
+    Route::get('/select-kota', function () {
+        return view('selectkota.index');
+    })->name('selectkota.index');
 
     // Fitur Dokumen (Editor & PDF)
     Route::prefix('dokumen')->group(function () {
@@ -80,12 +86,21 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/vendor/{id_vendor}/menu', [VendorController::class, 'tambahMenu'])->name('vendor.menu.store');
     Route::delete('/vendor/menu/{id_menu}', [VendorController::class, 'hapusMenu'])->name('vendor.menu.hapus');
 
-    // Customer Data
+    // Customer Data (legacy route names kept for backward compatibility)
     Route::get('/customer-data', [CustomerDataController::class, 'index'])->name('customer-data.index');
     Route::get('/customer-data/tambah-blob', [CustomerDataController::class, 'createBlob'])->name('customer-data.create-blob');
     Route::post('/customer-data/tambah-blob', [CustomerDataController::class, 'storeBlob'])->name('customer-data.store-blob');
     Route::get('/customer-data/tambah-path', [CustomerDataController::class, 'createPath'])->name('customer-data.create-path');
     Route::post('/customer-data/tambah-path', [CustomerDataController::class, 'storePath'])->name('customer-data.store-path');
+
+    // Studi Kasus 3 - Alias route admin.customer.* -> CustomerDataController
+    Route::prefix('admin')->name('admin.')->group(function () {
+        Route::get('/customer', [CustomerDataController::class, 'index'])->name('customer.index');
+        Route::get('/customer/tambah-blob', [CustomerDataController::class, 'createBlob'])->name('customer.createBlob');
+        Route::post('/customer/tambah-blob', [CustomerDataController::class, 'storeBlob'])->name('customer.storeBlob');
+        Route::get('/customer/tambah-path', [CustomerDataController::class, 'createPath'])->name('customer.createPath');
+        Route::post('/customer/tambah-path', [CustomerDataController::class, 'storePath'])->name('customer.storePath');
+    });
 });
 
 // Payment Gateway - Customer (Tanpa Login)
@@ -104,5 +119,6 @@ Route::get('/test-email', function () {
     Mail::raw('Tes OTP Email', function ($m) {
         $m->to('finaaidaysf@gmail.com')->subject('Tes SMTP Laravel');
     });
+
     return 'Cek inbox / spam.';
 });

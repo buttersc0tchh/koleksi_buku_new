@@ -298,6 +298,29 @@
               </div>
             </li>
 
+            {{-- Studi Kasus 3 - Customer (Akses Kamera) --}}
+            <li class="nav-item {{ Request::is('admin/customer*') ? 'active' : '' }}">
+              <a class="nav-link" data-bs-toggle="collapse" href="#customer-menu"
+                 aria-expanded="{{ Request::is('admin/customer*') ? 'true' : 'false' }}" aria-controls="customer-menu">
+                <span class="menu-title">Customer</span>
+                <i class="menu-arrow"></i>
+                <i class="mdi mdi-account-multiple menu-icon"></i>
+              </a>
+
+              <div class="collapse {{ Request::is('admin/customer*') ? 'show' : '' }}" id="customer-menu">
+                <ul class="nav flex-column sub-menu">
+                  <li class="nav-item">
+                    <a class="nav-link" href="{{ route('admin.customer.index') }}">Data Customer</a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" href="{{ route('admin.customer.createBlob') }}">Tambah Customer 1 (BLOB)</a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" href="{{ route('admin.customer.createPath') }}">Tambah Customer 2 (PATH)</a>
+                  </li>
+                </ul>
+              </div>
+            </li>
           </ul>
         </nav>
         <div class="main-panel">

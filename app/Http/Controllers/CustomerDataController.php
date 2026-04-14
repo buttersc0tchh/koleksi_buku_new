@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Customer;
+use Illuminate\Http\Request;
 
 class CustomerDataController extends Controller
 {
@@ -11,6 +11,7 @@ class CustomerDataController extends Controller
     public function index()
     {
         $customers = Customer::all();
+
         return view('customer-data.index', compact('customers'));
     }
 
@@ -22,19 +23,25 @@ class CustomerDataController extends Controller
 
     public function storeBlob(Request $request)
     {
-        $request->validate([
-            'nama'  => 'required|string|max:255',
+        $validated = $request->validate([
+            'nama' => 'required|string|max:255',
             'email' => 'nullable|email',
-            'foto'  => 'required|string', // base64
+            'foto' => 'required|image|mimes:jpg,jpeg,png|max:2048',
         ]);
+
+        $file = $request->file('foto');
+        $base64 = 'data:'.$file->getMimeType().';base64,'.
+            base64_encode(file_get_contents($file->getRealPath()));
 
         Customer::create([
-            'nama'      => $request->nama,
-            'email'     => $request->email,
-            'foto_blob' => $request->foto,
+            'nama' => $validated['nama'],
+            'email' => $validated['email'] ?? null,
+            'foto_blob' => $base64,
         ]);
 
-        return redirect()->route('customer-data.index')->with('success', 'Customer berhasil ditambahkan!');
+        return redirect()
+            ->route('admin.customer.index')
+            ->with('success', 'Customer berhasil ditambahkan (BLOB/base64)!');
     }
 
     // Tambah Customer 2 - File Path
@@ -45,30 +52,22 @@ class CustomerDataController extends Controller
 
     public function storePath(Request $request)
     {
-        $request->validate([
-            'nama'  => 'required|string|max:255',
+        $validated = $request->validate([
+            'nama' => 'required|string|max:255',
             'email' => 'nullable|email',
-            'foto'  => 'required|string', // base64 dari kamera
+            'foto' => 'required|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
-        // Simpan file ke storage
-        $base64  = $request->foto;
-        $image   = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $base64));
-        $filename = 'customer_' . time() . '.png';
-        $path = public_path('uploads/customers/');
-
-        if (!file_exists($path)) {
-            mkdir($path, 0777, true);
-        }
-
-        file_put_contents($path . $filename, $image);
+        $path = $request->file('foto')->store('customers', 'public');
 
         Customer::create([
-            'nama'      => $request->nama,
-            'email'     => $request->email,
-            'foto_path' => 'uploads/customers/' . $filename,
+            'nama' => $validated['nama'],
+            'email' => $validated['email'] ?? null,
+            'foto_path' => $path,
         ]);
 
-        return redirect()->route('customer-data.index')->with('success', 'Customer berhasil ditambahkan!');
+        return redirect()
+            ->route('admin.customer.index')
+            ->with('success', 'Customer berhasil ditambahkan (PATH)!');
     }
 }
