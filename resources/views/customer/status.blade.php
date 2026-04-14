@@ -101,13 +101,34 @@
                 </div>
                 @endif
 
-                <div class="mt-3">
-                    <a href="{{ route('customer.index') }}" class="btn btn-primary">
-                        <i class="mdi mdi-arrow-left me-1"></i> Pesan Lagi
-                    </a>
-                </div>
+        <div class="mt-3 d-flex gap-2">
+             @if($pesanan->status_bayar == 0)
+            <button onclick="cekStatus()" class="btn btn-warning">
+               <i class="mdi mdi-refresh"></i> Cek Status Pembayaran
+            </button>
+             @endif
+             <a href="{{ route('customer.index') }}" class="btn btn-primary">
+                 <i class="mdi mdi-arrow-left me-1"></i> Pesan Lagi
+            </a>
+         </div>
             </div>
         </div>
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+function cekStatus() {
+    fetch("{{ route('customer.status', $pesanan->id_pesanan) }}")
+        .then(res => res.json())
+        .then(data => {
+            if (data.status_label === 'lunas') {
+                window.location.reload();
+            } else {
+                alert('Status masih: ' + data.status_label + '. Tunggu beberapa saat lagi.');
+            }
+        });
+}
+</script>
+@endpush

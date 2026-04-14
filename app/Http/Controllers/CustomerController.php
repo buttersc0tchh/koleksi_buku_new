@@ -95,7 +95,7 @@ class CustomerController extends Controller
             'total'             => $total,
             'metode_bayar'      => $request->metode_bayar == 'qris' ? 'QRIS' : 'Virtual Account',
             'status_bayar'      => 0,
-            'midtrans_order_id' => null,
+            'midtrans_order_id' => $orderId,
         ]);
 
         foreach ($cartItems as $item) {
@@ -165,6 +165,7 @@ class CustomerController extends Controller
 
         $clientKey = config('midtrans.client_key');
         $snapJsUrl = config('midtrans.snap_url');
+        $autoOpenSnap = false;
 
         return view('customer.payment', compact('pesanan', 'clientKey', 'snapJsUrl', 'autoOpenSnap'));
     }
