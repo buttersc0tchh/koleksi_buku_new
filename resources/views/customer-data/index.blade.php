@@ -22,8 +22,8 @@
             <th>#</th>
             <th>Nama</th>
             <th>Email</th>
-            <th>BLOB?</th>
-            <th>PATH?</th>
+            <th>Foto BLOB</th>
+            <th>Foto PATH</th>
           </tr>
         </thead>
         <tbody>
@@ -31,9 +31,29 @@
             <tr>
               <td>{{ $c->id }}</td>
               <td>{{ $c->nama }}</td>
-              <td>{{ $c->email }}</td>
-              <td>{{ $c->foto_blob ? 'ada' : '-' }}</td>
-              <td>{{ $c->foto_path ? $c->foto_path : '-' }}</td>
+              <td>{{ $c->email ?: '-' }}</td>
+              <td>
+                @if ($c->foto_blob)
+                  <img
+                    src="{{ $c->foto_blob }}"
+                    alt="Foto BLOB {{ $c->nama }}"
+                    style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px;"
+                  >
+                @else
+                  -
+                @endif
+              </td>
+              <td>
+                @if ($c->foto_path)
+                  <img
+                    src="{{ asset('storage/' . $c->foto_path) }}"
+                    alt="Foto PATH {{ $c->nama }}"
+                    style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px;"
+                  >
+                @else
+                  -
+                @endif
+              </td>
             </tr>
           @empty
             <tr>

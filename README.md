@@ -57,3 +57,12 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+## Catatan upload gambar customer
+
+Fitur `foto_path` menyimpan file ke disk `public` (`storage/app/public/customers`) dan menampilkan gambar via `asset('storage/...')`.
+Pastikan symbolic link storage sudah dibuat di environment Anda:
+
+```bash
+php artisan storage:link
+```

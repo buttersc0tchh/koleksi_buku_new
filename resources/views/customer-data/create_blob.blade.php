@@ -25,6 +25,11 @@
       </div>
 
       <div class="mb-3">
+        <label class="form-label">Email (opsional)</label>
+        <input type="email" name="email" class="form-control" value="{{ old('email') }}">
+      </div>
+
+      <div class="mb-3">
         <label class="form-label">Foto (akan disimpan BLOB)</label>
         <input id="foto" type="file" name="foto" class="form-control" accept="image/*" capture="environment" required>
         <small class="text-muted">Di HP akan muncul opsi kamera.</small>
