@@ -86,6 +86,17 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/customer-data/tambah-blob', [CustomerDataController::class, 'storeBlob'])->name('customer-data.store-blob');
     Route::get('/customer-data/tambah-path', [CustomerDataController::class, 'createPath'])->name('customer-data.create-path');
     Route::post('/customer-data/tambah-path', [CustomerDataController::class, 'storePath'])->name('customer-data.store-path');
+
+    // Studi Kasus 3 - Alias route admin.customer.* -> CustomerDataController
+    Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () {
+    Route::get('/customer', [CustomerDataController::class, 'index'])->name('customer.index');
+
+    Route::get('/customer/tambah-blob', [CustomerDataController::class, 'createBlob'])->name('customer.createBlob');
+    Route::post('/customer/tambah-blob', [CustomerDataController::class, 'storeBlob'])->name('customer.storeBlob');
+
+    Route::get('/customer/tambah-path', [CustomerDataController::class, 'createPath'])->name('customer.createPath');
+    Route::post('/customer/tambah-path', [CustomerDataController::class, 'storePath'])->name('customer.storePath');
+});
 });
 
 // Payment Gateway - Customer (Tanpa Login)
