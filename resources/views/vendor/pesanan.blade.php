@@ -7,6 +7,9 @@
             <i class="mdi mdi-receipt"></i>
         </span> Pesanan Lunas
     </h3>
+    <a href="{{ route('vendor.scanQr') }}" class="btn btn-info">
+        <i class="mdi mdi-qrcode-scan me-2"></i> Scan QR Code Pesanan
+    </a>
 </div>
 
 <div class="row">

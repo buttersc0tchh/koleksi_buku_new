@@ -16,6 +16,32 @@
 </div>
 @endif
 
+<div class="row mb-4">
+    <div class="col-md-6 grid-margin">
+        <a href="{{ route('vendor.scanQr') }}" class="text-decoration-none">
+            <div class="card bg-gradient-info text-white">
+                <div class="card-body text-center py-4">
+                    <i class="mdi mdi-qrcode-scan" style="font-size:40px;"></i>
+                    <h5 class="card-title mt-3 mb-1">Scan QR Code</h5>
+                    <p class="card-text mb-0">Pindai QR code pesanan</p>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-6 grid-margin">
+        <a href="{{ route('vendor.pesanan') }}" class="text-decoration-none">
+            <div class="card bg-gradient-success text-white">
+                <div class="card-body text-center py-4">
+                    <i class="mdi mdi-receipt-check" style="font-size:40px;"></i>
+                    <h5 class="card-title mt-3 mb-1">Pesanan Lunas</h5>
+                    <p class="card-text mb-0">Lihat daftar pesanan</p>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+
 <div class="row">
     <div class="col-md-4 grid-margin">
         <div class="card">
@@ -31,7 +57,7 @@
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn btn-primary w-100">
                         <i class="mdi mdi-plus"></i> Tambah Vendor
                     </button>
                 </form>

@@ -79,4 +79,33 @@ class VendorController extends Controller
         return redirect()->route('vendor.index')
             ->with('success', 'Vendor berhasil ditambahkan!');
     }
+
+    public function scanQr()
+{
+    return view('vendor.scan-qr');
+}
+
+public function cariPesanan($id_pesanan)
+{
+    $pesanan = Pesanan::where('id_pesanan', $id_pesanan)
+        ->with('detail.menu')
+        ->first();
+
+    if (!$pesanan) {
+        return response()->json(['error' => 'Pesanan tidak ditemukan'], 404);
+    }
+
+    return response()->json([
+        'id_pesanan'   => $pesanan->id_pesanan,
+        'status_bayar' => $pesanan->status_bayar == 1 ? 'Lunas' : 'Belum Lunas',
+        'total'        => $pesanan->total,
+        'detail'       => $pesanan->detail->map(function ($d) {
+            return [
+                'nama_menu' => $d->menu->nama_menu ?? '-',
+                'jumlah'    => $d->jumlah,
+                'harga'     => $d->harga,
+            ];
+        }),
+    ]);
+}
 }

@@ -11,9 +11,14 @@
                     <h4 class="card-title mb-0">
                         <i class="mdi mdi-tag text-primary"></i> Data Barang & Tag Harga
                     </h4>
+                    <div class="d-flex gap-2">
+                    <a href="{{ route('barang.scan') }}" class="btn btn-info btn-sm">
+                        <i class="mdi mdi-barcode-scan"></i> Scan Barcode
+                    </a>
                     <a href="{{ route('barang.create') }}" class="btn btn-primary btn-sm">
                         <i class="mdi mdi-plus"></i> Tambah Barang
                     </a>
+                    </div>
                 </div>
 
                 @if(session('success'))

@@ -241,11 +241,26 @@ class CustomerController extends Controller
         $qrCode = null;
         if ($pesanan->status_bayar == 1) {
             $writer    = new \Endroid\QrCode\Writer\PngWriter();
-            $qrCodeObj = new \Endroid\QrCode\QrCode('Pesanan #' . $pesanan->id_pesanan);
+            $qrCodeObj = new \Endroid\QrCode\QrCode((string) $pesanan->id_pesanan);
             $result = $writer->write($qrCodeObj);
             $qrCode = base64_encode($result->getString());
         }
 
         return view('customer.status', compact('pesanan', 'qrCode'));
     }
+
+    public function qrCode($id_pesanan)
+{
+    $pesanan = Pesanan::where('id_pesanan', $id_pesanan)->firstOrFail();
+
+    $qrCode = null;
+    if ($pesanan->status_bayar == 1) {
+        $writer    = new \Endroid\QrCode\Writer\PngWriter();
+        $qrCodeObj = new \Endroid\QrCode\QrCode((string) $pesanan->id_pesanan);
+        $result    = $writer->write($qrCodeObj);
+        $qrCode    = base64_encode($result->getString());
+    }
+
+    return view('customer.qrcode', compact('pesanan', 'qrCode'));
+}
 }

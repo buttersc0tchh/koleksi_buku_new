@@ -44,6 +44,8 @@ Route::middleware(['auth'])->group(function () {
 
     // Tag Harga
     Route::get('barang/cetak-pdf', [BarangController::class, 'cetakPdf'])->name('barang.cetakPdf');
+    Route::get('/barang/scan', [BarangController::class, 'scanBarcode'])->name('barang.scan');
+    Route::get('/barang/cari/{id_barang}', [BarangController::class, 'cariBarang'])->name('barang.cari');
     Route::resource('barang', BarangController::class);
 
     // Soal 2 - Form Barang Tanpa DB
@@ -78,13 +80,15 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/pos/cari-barang', [PosController::class, 'cariBarang'])->name('pos.cariBarang');
     Route::post('/pos/bayar', [PosController::class, 'bayar'])->name('pos.bayar');
 
-    // Payment Gateway - Vendor
-    Route::get('/vendor', [VendorController::class, 'index'])->name('vendor.index');
-    Route::post('/vendor', [VendorController::class, 'storeVendor'])->name('vendor.store');
-    Route::get('/vendor/pesanan-lunas', [VendorController::class, 'pesananLunas'])->name('vendor.pesanan');
-    Route::get('/vendor/{id_vendor}/menu', [VendorController::class, 'menu'])->name('vendor.menu');
-    Route::post('/vendor/{id_vendor}/menu', [VendorController::class, 'tambahMenu'])->name('vendor.menu.store');
-    Route::delete('/vendor/menu/{id_menu}', [VendorController::class, 'hapusMenu'])->name('vendor.menu.hapus');
+   // Payment Gateway - Vendor
+   Route::get('/vendor', [VendorController::class, 'index'])->name('vendor.index');
+   Route::post('/vendor', [VendorController::class, 'storeVendor'])->name('vendor.store');
+   Route::get('/vendor/pesanan-lunas', [VendorController::class, 'pesananLunas'])->name('vendor.pesanan');
+   Route::get('/vendor/scan-qr', [VendorController::class, 'scanQr'])->name('vendor.scanQr');
+   Route::get('/vendor/cari-pesanan/{id_pesanan}', [VendorController::class, 'cariPesanan'])->name('vendor.cariPesanan');
+   Route::get('/vendor/{id_vendor}/menu', [VendorController::class, 'menu'])->name('vendor.menu');
+   Route::post('/vendor/{id_vendor}/menu', [VendorController::class, 'tambahMenu'])->name('vendor.menu.store');
+   Route::delete('/vendor/menu/{id_menu}', [VendorController::class, 'hapusMenu'])->name('vendor.menu.hapus');
 
     // Customer Data (legacy route names kept for backward compatibility)
     Route::get('/customer-data', [CustomerDataController::class, 'index'])->name('customer-data.index');
@@ -110,6 +114,7 @@ Route::post('/customer/bayar', [CustomerController::class, 'generatePayment'])->
 Route::get('/payment/{id_pesanan}', [CustomerController::class, 'showPayment'])->name('payment.show');
 Route::get('/payment-status/{id_pesanan}', [CustomerController::class, 'paymentStatus'])->name('payment.status');
 Route::get('/customer/status/{id_pesanan}', [CustomerController::class, 'status'])->name('customer.status');
+Route::get('/customer/qrcode/{id_pesanan}', [CustomerController::class, 'qrCode'])->name('customer.qrcode');
 
 // Midtrans Webhook
 Route::post('/webhook/midtrans', [CustomerController::class, 'paymentCallback'])->name('webhook.midtrans');

@@ -92,25 +92,35 @@
                     </table>
                 </div>
 
+                {{-- QR Code preview + link ke halaman tersendiri --}}
                 @if($pesanan->status_bayar == 1 && $qrCode)
                 <div class="text-center my-4">
-                     <h6 class="mb-2">QR Code Pesanan</h6>
+                    <h6 class="mb-2">QR Code Pesanan</h6>
                     <img src="data:image/png;base64,{{ $qrCode }}"
-                    alt="QR Code" style="width:150px; height:150px;">
+                         alt="QR Code" style="width:180px; height:180px;">
                     <p class="text-muted small mt-1">ID Pesanan: #{{ $pesanan->id_pesanan }}</p>
+                    <a href="{{ route('customer.qrcode', $pesanan->id_pesanan) }}"
+                       class="btn btn-success btn-sm mt-2">
+                        <i class="mdi mdi-qrcode me-1"></i> Buka Halaman QR Code
+                    </a>
                 </div>
                 @endif
 
-        <div class="mt-3 d-flex gap-2">
-             @if($pesanan->status_bayar == 0)
-            <button onclick="cekStatus()" class="btn btn-warning">
-               <i class="mdi mdi-refresh"></i> Cek Status Pembayaran
-            </button>
-             @endif
-             <a href="{{ route('customer.index') }}" class="btn btn-primary">
-                 <i class="mdi mdi-arrow-left me-1"></i> Pesan Lagi
-            </a>
-         </div>
+                <div class="mt-3 d-flex gap-2 flex-wrap">
+                    @if($pesanan->status_bayar == 0)
+                    <button onclick="cekStatus()" class="btn btn-warning">
+                        <i class="mdi mdi-refresh"></i> Cek Status Pembayaran
+                    </button>
+                    @endif
+                    @if($pesanan->status_bayar == 1)
+                    <a href="{{ route('customer.qrcode', $pesanan->id_pesanan) }}" class="btn btn-success">
+                        <i class="mdi mdi-qrcode me-1"></i> Lihat QR Code
+                    </a>
+                    @endif
+                    <a href="{{ route('customer.index') }}" class="btn btn-primary">
+                        <i class="mdi mdi-arrow-left me-1"></i> Pesan Lagi
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -120,7 +130,7 @@
 @push('scripts')
 <script>
 function cekStatus() {
-    fetch("{{ route('customer.status', $pesanan->id_pesanan) }}")
+    fetch("{{ route('payment.status', $pesanan->id_pesanan) }}")
         .then(res => res.json())
         .then(data => {
             if (data.status_label === 'lunas') {

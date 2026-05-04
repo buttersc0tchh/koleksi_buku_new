@@ -22,6 +22,8 @@
 </div>
 @endif
 
+<div id="bannerQr"></div>
+
 <form action="{{ route('customer.checkout') }}" method="POST" id="checkoutForm">
     @csrf
     @foreach($vendors as $vendor)
@@ -85,3 +87,21 @@
     @endif
 </form>
 @endsection
+
+@push('scripts')
+<script>
+    const lastId = localStorage.getItem('last_qrcode_id');
+    if (lastId) {
+        document.getElementById('bannerQr').innerHTML = `
+            <div class="alert alert-info alert-dismissible fade show" role="alert">
+                <i class="mdi mdi-qrcode me-2"></i>
+                Kamu punya pesanan sebelumnya.
+                <a href="/customer/qrcode/${lastId}" class="alert-link fw-bold">
+                    Lihat QR Code Pesanan #${lastId}
+                </a>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        `;
+    }
+</script>
+@endpush

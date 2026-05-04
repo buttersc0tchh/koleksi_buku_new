@@ -101,4 +101,23 @@ class BarangController extends Controller
 
         return $pdf->stream('tag-harga.pdf');
     }
+
+    public function scanBarcode()
+{
+    return view('barang.scan');
+}
+
+public function cariBarang($id_barang)
+{
+    $barang = \App\Models\Barang::find($id_barang);
+    if (!$barang) {
+        return response()->json(['error' => 'Barang tidak ditemukan'], 404);
+    }
+    return response()->json([
+        'id_barang'   => $barang->id_barang,
+        'nama_barang' => $barang->nama_barang,
+        'harga'       => $barang->harga,
+        'satuan'      => $barang->satuan,
+    ]);
+}
 }
